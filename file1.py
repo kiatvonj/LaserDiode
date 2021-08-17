@@ -4,3 +4,6 @@ import pyvisa
 
 
 print('sup')
+
+
+print('kekw')
