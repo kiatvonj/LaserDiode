@@ -4,3 +4,5 @@ import pyvisa
 
 
 print('sup')
+
+print('naw brah')
