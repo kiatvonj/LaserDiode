@@ -42,12 +42,13 @@ for i in currents:
     
     actual_currents.append(float(SMU.query('MEAS:CURR:DC?')))
     SMU_volt.append(float(SMU.query('MEAS:VOLT:DC?')))
-    DMM_volt.append(float(DMM.query('MEAS:VOLT:DC?')))
+    DMM_volt.append(float(DMM.query('MEAS:VOLT:DC?'))) # this is slow, ~5sec
+
     
     SMU.write('SOUR:CURR 0.0')             # Sets current to 0
     t2 = time.time()
     
-    time.sleep(.1)
+    time.sleep(1)
     
     print('Time this loop:',(t2-t1))
 
