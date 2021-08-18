@@ -49,46 +49,65 @@ actual_currents = []
 SMU_volt = []
 DMM_volt = []
 
-for i in currents:
-    current = str(i)
-    # SMU.write('SOUR:CURR '+current)        # Sets current to i
-    
-    SMU.write('SOUR:FUNC:SHAP PULS')        
-    SMU.write('SOUR:PULS:DEL 1E-3')        
-    SMU.write('SOUR:PULS:WIDT 0.5')        
-    SMU.write('SOUR:CURR 0')        
-    SMU.write('SOUR:CURR:TRIG '+ current)        
-    
-    # SMU.write('SENS:CURR:APER .25')
-    # SMU.write('SENS:VOLT:APER .25')
+# for i in currents:
+# current = str(i)
+# SMU.write('SOUR:CURR '+current)        # Sets current to i
 
-    
-    SMU.write('INIT')
-    # SMU.write('TRIG:SING')
+# SMU.write('SOUR:FUNC:SHAP PULS')        
+# SMU.write('SOUR:PULS:DEL 1')        
+# SMU.write('SOUR:PULS:WIDT 0.5')        
+# SMU.write('SOUR:CURR 0')        
+# SMU.write('SOUR:CURR:TRIG '+ current) 
+# SMU.write('SOUR:SWE:DIR UP')
+# SMU.write('SOUR:SWE:STA SING')
+# SMU.write('SOUR:SWE:SPAC LIN')
+# SMU.write('SOUR:CURR:MODE SWE')
+# SMU.write('SOUR:CURR:STAR 0')
+# SMU.write('SOUR:CURR:STOP 0.05')
+# SMU.write('SOUR:CURR:POIN 11')
 
-    
+# SMU.write('SENS:CURR:APER .25')
+# SMU.write('SENS:VOLT:APER .25')
 
-    SMU.write('OUTP ON')
 
-    SMU.write('SENS:FUNC:OFF:ALL')
-    SMU.write('SENS:FUNC ""CURR""')
-    
-    SMU.write('SENS:WAIT OFF')
-    SMU.write('TRIG:SOUR TIM')
-    SMU.write('TRIG:TIM 1E-3')
-    SMU.write('TRIG:ACQ:DEL 2E-5')
+SMU.write("SENSe:SWEep:PULSe:MODE PROFILE")
+SMU.write("SENSe:SWEep:PULSe:DRIVe 1")
+SMU.write("SENSe:SWEep:PULSe:PRF 1")
+SMU.write("SENSe:SWEep:PULSe:TIMing 1")
+SMU.write("SENSe:SWEep:PULSe:DETectmode 1")
+SMU.write("SENSe:SWEep:PULSe:IFBW 1")
+SMU.write("SENSe:SWEep:PULSe:MASTer:WIDth 10e-6")
+SMU.write("SENSe:SWEep:PULSe:MASTer:PERiod 1e-3")
 
-    actual_currents.append(float(SMU.query('MEAS:CURR:DC?')))
-    SMU_volt.append(float(SMU.query('MEAS:VOLT:DC?')))
-    DMM_volt.append(float(DMM.query('MEAS:VOLT:DC?')))
-    
-    print(SMU.query('MEAS:CURR?'))
-    
-    # SMU.write('SOUR:WAIT ON')
-    # SMU.write('SOUR:WAIT:AUTO OFF')
-    # SMU.write('SOUR:WAIT:OFFS 10E-6')
-    
-    # SMU.write('SOUR:CURR 0.0')             # Sets current to 0
+
+
+SMU.write('INIT')
+# SMU.write('TRIG:SING')
+
+
+
+# SMU.write('OUTP ON')
+
+# SMU.write('SENS:FUNC:OFF:ALL')
+# SMU.write('SENS:FUNC ""CURR""')
+
+# SMU.write('SENS:WAIT OFF')
+# SMU.write('TRIG:SOUR TIM')
+# SMU.write('TRIG:TIM 1')
+# SMU.write('TRIG:COUN 11')
+# SMU.write('TRIG:ACQ:DEL 2E-3')
+
+actual_currents.append(float(SMU.query('MEAS:CURR:DC?')))
+SMU_volt.append(float(SMU.query('MEAS:VOLT:DC?')))
+DMM_volt.append(float(DMM.query('MEAS:VOLT:DC?')))
+
+print(SMU.query('MEAS:CURR?'))
+
+# SMU.write('SOUR:WAIT ON')
+# SMU.write('SOUR:WAIT:AUTO OFF')
+# SMU.write('SOUR:WAIT:OFFS 10E-6')
+
+# SMU.write('SOUR:CURR 0.0')             # Sets current to 0
     
     
 
