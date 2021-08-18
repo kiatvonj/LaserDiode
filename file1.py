@@ -1,18 +1,26 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pyvisa
-import serial
+# import serial
 
 rm = pyvisa.ResourceManager()
 print(rm.list_resources())
 
-SMU_name, DMM_name = rm.list_resources()
+name1, name2 = rm.list_resources()
+
+if 'MY' in name1:
+    SMU_name = name1
+    DMM_name = name2
+else:
+    SMU_name = name2
+    DMM_name = name1
+
 
 SMU = rm.open_resource(SMU_name)
 DMM = rm.open_resource(DMM_name)
 
 print(SMU.query('*IDN?'))
-print(DMM.query('*IDN?')) # this WOULD NOT work with the Fluke DMM, switched to RIGOL
+print(DMM.query('*IDN?'))            # this WOULD NOT work with the Fluke DMM, switched to RIGOL
 
 
 
@@ -46,29 +54,35 @@ for i in currents:
     # SMU.write('SOUR:CURR '+current)        # Sets current to i
     
     SMU.write('SOUR:FUNC:SHAP PULS')        
-    # SMU.write('SOUR:PULS:DEL 1E-3')        
+    SMU.write('SOUR:PULS:DEL 1E-3')        
     SMU.write('SOUR:PULS:WIDT 0.5')        
     SMU.write('SOUR:CURR 0')        
     SMU.write('SOUR:CURR:TRIG '+ current)        
     
-    SMU.write('SENS:CURR:APER .25')
-    SMU.write('SENS:VOLT:APER .25')
+    # SMU.write('SENS:CURR:APER .25')
+    # SMU.write('SENS:VOLT:APER .25')
 
     
     SMU.write('INIT')
     # SMU.write('TRIG:SING')
 
-    # SMU.write('SENS:FUNC:OFF ""RES""')
-    # SMU.write('SENS:VOLT:MODE MAN')
-    # SMU.write('SENS:CURR:MODE MAN')
     
 
     SMU.write('OUTP ON')
+
+    SMU.write('SENS:FUNC:OFF:ALL')
+    SMU.write('SENS:FUNC ""CURR""')
     
+    SMU.write('SENS:WAIT OFF')
+    SMU.write('TRIG:SOUR TIM')
+    SMU.write('TRIG:TIM 1E-3')
+    SMU.write('TRIG:ACQ:DEL 2E-5')
+
     actual_currents.append(float(SMU.query('MEAS:CURR:DC?')))
     SMU_volt.append(float(SMU.query('MEAS:VOLT:DC?')))
     DMM_volt.append(float(DMM.query('MEAS:VOLT:DC?')))
     
+    print(SMU.query('MEAS:CURR?'))
     
     # SMU.write('SOUR:WAIT ON')
     # SMU.write('SOUR:WAIT:AUTO OFF')
@@ -77,13 +91,9 @@ for i in currents:
     # SMU.write('SOUR:CURR 0.0')             # Sets current to 0
     
     
-    '''
-    print('SMU Curr:', float(SMU.query('MEAS:CURR:DC?')))
-    print('SMU Volt:', float(SMU.query('MEAS:VOLT:DC?')))
-    print('DMM Volt:', float(DMM.query('MEAS:VOLT:DC?')),'\n')
-    '''
 
-SMU.write(':OUPT OFF')
+
+SMU.write(':OUTP OFF')
 SMU.write('*RST')
 
 
@@ -97,7 +107,14 @@ plt.plot(actual_currents, DMM_volt, 'b.')
 plt.show()
 
 
+
 '''
+SMU Commands:
+    SMU.query('MEAS:CURR:DC?')
+    SMU.query('MEAS:VOLT:DC?')
+    DMM.query('MEAS:VOLT:DC?')
+
+
 DMM Commands:
     DMM.query('MEAS:VOLT:DC?')
 '''
