@@ -56,15 +56,15 @@ SMU.write('TRIG:SOUR TIM')  # sets the timer trigger source
 SMU.write('TRIG:TIM 2')  # sets trigger interval in seconds
 SMU.write('TRIG:COUN 1')    # sets the trigger count to 3
 
-pulse_width= 0.5 # seconds
+pulse_width= 1 # seconds
 
 # Defining pulse time after start of trigger and pulse width (Need to be < TRIG:TIM )
 SMU.write('TRIG:TRAN:DEL 0.5') # sets the transient delay
-SMU.write('SOUR:PULS:DEL .25') # set pulse delay (in seconds)
+SMU.write('SOUR:PULS:DEL 0.25') # set pulse delay (in seconds)
 SMU.write('SOUR:PULS:WIDT '+str(pulse_width)) # set pulse width (in seconds)
 
 # Defining Acquisition time (measurement) after start of trigger
-SMU.write('TRIG:ACQ:DEL '+str(0.75+pulse_width*0.9e-3))   # sets the acquisition delay (in seconds)
+SMU.write('TRIG:ACQ:DEL '+str(0.75+pulse_width*0.9))   # sets the acquisition delay (in seconds)
 
 
 SMU.write('SENS:FUNC ALL ') # sets the measurement type to all
@@ -78,7 +78,7 @@ SMU.write('SENS:CURR:RANG:AUTO ON') # automatic range measurement
 # DMM.write('TRIG:SOUR AUTO')
 # DMM.write('TRIG:AUTO:INTE 2')
 DMM.write('TRIG:COUN 1')
-DMM.write('TRIG:DEL '+str(0.75+pulse_width*0.9e-3))
+DMM.write('TRIG:DEL '+str(0.75+pulse_width*0.9))
 
 SMU.write('OUTP ON')    # turns the output source on
 SMU.write('INIT')       # starts pulse output and spot measurements
