@@ -21,109 +21,73 @@ DMM = rm.open_resource(DMM_name)
 
 print(SMU.query('*IDN?'))
 print(DMM.query('*IDN?'))            # this WOULD NOT work with the Fluke DMM, switched to RIGOL
-
-
-
-SMU.write('SENS:REM ON')            # Connection type: 4-wire mode
-SMU.write('SOUR:FUNC:MODE CURR')    # Output source function mode: current
-SMU.write('SOUR:CURR 0.00')          # Sets current: 30 mA
-SMU.write('SENS:VOLT:PROT 5.0')     # Sets compliance voltage: 5.0 V
-
-SMU.write('OUTP ON')                # Turns output on (supposedly, doesn't seem to do anything)
-
-print('SMU Curr:', float(SMU.query('MEAS:CURR:DC?')))
-print('SMU Volt:', float(SMU.query('MEAS:VOLT:DC?')))
-
-print('DMM Volt:', float(DMM.query('MEAS:VOLT:DC?')))
-
-
-# SMU.write('INIT')
-
-
 print('\n')
 
 
 
-currents = np.linspace(0,0.05,10)
-actual_currents = []
-SMU_volt = []
-DMM_volt = []
+# currents = np.linspace(0,0.05,10)
+# actual_currents = []
+# SMU_volt = []
+# DMM_volt = []
 
 # for i in currents:
 # current = str(i)
-# SMU.write('SOUR:CURR '+current)        # Sets current to i
 
-# SMU.write('SOUR:FUNC:SHAP PULS')        
-# SMU.write('SOUR:PULS:DEL 1')        
-# SMU.write('SOUR:PULS:WIDT 0.5')        
-# SMU.write('SOUR:CURR 0')        
-# SMU.write('SOUR:CURR:TRIG '+ current) 
-# SMU.write('SOUR:SWE:DIR UP')
-# SMU.write('SOUR:SWE:STA SING')
-# SMU.write('SOUR:SWE:SPAC LIN')
-# SMU.write('SOUR:CURR:MODE SWE')
-# SMU.write('SOUR:CURR:STAR 0')
-# SMU.write('SOUR:CURR:STOP 0.05')
-# SMU.write('SOUR:CURR:POIN 11')
-
-# SMU.write('SENS:CURR:APER .25')
-# SMU.write('SENS:VOLT:APER .25')
+SMU.write('*RST')
+SMU.write('SENS:REM ON')            # Connection type: 4-wire mode
 
 
-SMU.write("SENSe:SWEep:PULSe:MODE PROFILE")
-SMU.write("SENSe:SWEep:PULSe:DRIVe 1")
-SMU.write("SENSe:SWEep:PULSe:PRF 1")
-SMU.write("SENSe:SWEep:PULSe:TIMing 1")
-SMU.write("SENSe:SWEep:PULSe:DETectmode 1")
-SMU.write("SENSe:SWEep:PULSe:IFBW 1")
-SMU.write("SENSe:SWEep:PULSe:MASTer:WIDth 10e-6")
-SMU.write("SENSe:SWEep:PULSe:MASTer:PERiod 1e-3")
+#### Trying the pulse spot measurement example code from B2900 programming manual
+
+SMU.timeout = 10000 # sets waiting time to timeeout in ms
+
+SMU.write('SOUR:FUNC:MODE CURR') # set source output to current
+SMU.write('SOUR:FUNC:SHAP PULS') # set output shape to pulse
+SMU.write('SOUR:CURR 0')         # set base value of the pulse
+SMU.write('SOUR:CURR:TRIG 0.05') # set peak value of the pulse
+
+SMU.write('SOUR:PULS:DEL .25') # set pulse delay (500 us)
+SMU.write('SOUR:PULS:WIDT .5') # set pulse width (1 ms)
+
+SMU.write('SENS:FUNC ALL ') # sets the measurement type to all
+
+SMU.write('SENS:VOLT:RANG:AUTO ON') # automatic range measurement (?)
+SMU.write('SENS:VOLT:APER 0.1')  # sets the measurement aperture time
+SMU.write('SENS:VOLT:PROT 5')    # sets the compliance limit
+
+SMU.write('SENS:CURR:RANG:AUTO ON') # automatic range measurement
+
+SMU.write('TRIG:TRAN:DEL 0.5') # sets the transient delay
+SMU.write('TRIG:ACQ:DEL 1.2')   # sets the acquisition delay
+
+SMU.write('TRIG:SOUR TIM')  # sets the timer trigger source
+SMU.write('TRIG:TIM 2')  # sets trigger interval to 4 ms
+SMU.write('TRIG:COUN 3')    # sets the trigger count to 3
+
+SMU.write('OUTP ON')    # turns the output source on
+SMU.write('INIT')       # starts pulse output and spot measurements
 
 
+SMU.write('FETC:ARR:VOLT?')
+print(SMU.read())
+SMU.write('FETC:ARR:CURR?')
+print(SMU.read())
 
-SMU.write('INIT')
-# SMU.write('TRIG:SING')
-
-
-
-# SMU.write('OUTP ON')
-
-# SMU.write('SENS:FUNC:OFF:ALL')
-# SMU.write('SENS:FUNC ""CURR""')
-
-# SMU.write('SENS:WAIT OFF')
-# SMU.write('TRIG:SOUR TIM')
-# SMU.write('TRIG:TIM 1')
-# SMU.write('TRIG:COUN 11')
-# SMU.write('TRIG:ACQ:DEL 2E-3')
-
-actual_currents.append(float(SMU.query('MEAS:CURR:DC?')))
-SMU_volt.append(float(SMU.query('MEAS:VOLT:DC?')))
-DMM_volt.append(float(DMM.query('MEAS:VOLT:DC?')))
-
-print(SMU.query('MEAS:CURR?'))
-
-# SMU.write('SOUR:WAIT ON')
-# SMU.write('SOUR:WAIT:AUTO OFF')
-# SMU.write('SOUR:WAIT:OFFS 10E-6')
-
-# SMU.write('SOUR:CURR 0.0')             # Sets current to 0
-    
-    
-
-
-SMU.write(':OUTP OFF')
+SMU.write('OUTP OFF')
 SMU.write('*RST')
 
 
-print('ACTUAL_CURR: ', actual_currents)
-print('SMU_VOLT: ', SMU_volt)
-print('DMM_VOLT: ', DMM_volt)
 
-plt.figure()
-plt.plot(actual_currents, SMU_volt, 'k.')
-plt.plot(actual_currents, DMM_volt, 'b.')
-plt.show()
+
+
+
+
+
+
+
+
+
+
 
 
 
