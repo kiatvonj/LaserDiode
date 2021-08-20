@@ -45,10 +45,10 @@ DMM.timeout = 10000
 curr_peak = 30e-3
 
 trig_time = 1.5    # seconds
-pulse_width = 1  # seconds
+pulse_width = 0.5  # seconds
 trans_delay = (trig_time-pulse_width)/2 # seconds
 pulse_delay = 0  # seconds
-acq_delay =  trig_time/2 # seconds
+acq_delay =  trig_time/2  # seconds
  
 
 # DMM.write('CONF:VOLT:DC AUTO')
