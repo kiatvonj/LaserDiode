@@ -42,12 +42,12 @@ DMM.timeout = 10000
 def pulse_map(trig_time,pulse_width,acq_delay):
     SMU.write('SENS:REM ON')            # Connection type: 4-wire mode
     
-    curr_peak = 30e-3
+    curr_peak = 400e-3
     
     # trig_time = 1.5    # seconds
     # pulse_width = 0.5  # seconds
-    trans_delay = (trig_time/2-pulse_width) # seconds
-    pulse_delay = pulse_width/2  # seconds
+    trans_delay = trig_time*0.4 # (trig_time/2-pulse_width) # seconds
+    pulse_delay = trig_time*0.1 # pulse_width/2  # seconds
     # acq_delay =  trig_time/2  # seconds
      
     
@@ -63,7 +63,7 @@ def pulse_map(trig_time,pulse_width,acq_delay):
     # Defining total trigger time and count
     SMU.write('TRIG:SOUR TIM')  # sets the timer trigger source
     SMU.write('TRIG:TIM ' + str(trig_time))  # sets trigger interval in seconds
-    SMU.write('TRIG:COUN 1')    # sets the trigger count to 3
+    SMU.write('TRIG:COUN 10')    # sets the trigger count to 3
     
     
     # Defining pulse time after start of trigger and pulse width (Need to be < TRIG:TIM )
@@ -83,38 +83,84 @@ def pulse_map(trig_time,pulse_width,acq_delay):
     
     SMU.write('SENS:CURR:RANG:AUTO ON') # automatic range measurement
     
+    
+    # DMM.write('TRIG:COUN 1')
+    # DMM.write('TRIG:DEL ' + str(acq_delay))
+    
+    
     SMU.write('OUTP ON')    # turns the output source on
     SMU.write('INIT')       # starts pulse output and spot measurements
-    
+    # DMM.write('INIT')
+
     
     SMU.write('FETC:ARR:VOLT?')
-    voltage = float(SMU.read())
+    voltage = np.array(str(SMU.read()).split(','), dtype=float)
     SMU.write('FETC:ARR:CURR?')
-    current = float(SMU.read())
+    current = np.array(str(SMU.read()).split(','), dtype=float)
+    # DMM_voltage = float(DMM.query('FETC?'))
     
 
-    return (voltage,current)
+    return (voltage,current) #,DMM_voltage)
 
-SMU.write('OUTP OFF')
-SMU.write('*RST')
 
-trigger_length = 1 # second
-pulse_width = 0.1 # second
-acq_delays = np.linspace(0,trigger_length,20)
+pulse_width = 0.001 # second
+trigger_length = 0.3 # pulse_width*5 # second
+
+trig_start_to_pulse_delay = np.linspace(0,trigger_length/2-pulse_width,5) # sample points from 0 to start of pulse rise
+pulse_sample = np.linspace(trigger_length/2-pulse_width,trigger_length/2+pulse_width,15)
+end_pulse_to_end_trigger = np.linspace(trigger_length/2+pulse_width,trigger_length,5)
+# acq_delays = np.linspace(0,trigger_length,20)
+acq_delays = np.concatenate((trig_start_to_pulse_delay,pulse_sample,end_pulse_to_end_trigger))
+
+# acq_delays = np.arange(.49,.51,0.001)
 
 volts = []
 currs = []
+DMM_volts = []
 
 for i in acq_delays:
     voltage, current = pulse_map(trigger_length,pulse_width,i)
     volts.append(voltage)
     currs.append(current)
+    # DMM_volts.append(DMM_voltage)
     
+SMU.write('OUTP OFF')
+SMU.write('*RST')
+    
+volts = np.array(volts)
+currs = np.array(currs)
+print(volts[:,0])
+
+
 plt.figure()
-plt.plot(acq_delays,volts,'k.')
+plt.plot(acq_delays,volts[:,0],'k.')
+plt.plot(acq_delays,volts[:,1], 'r.')
+plt.plot(acq_delays,volts[:,2])
+plt.plot(acq_delays,volts[:,3])
+plt.plot(acq_delays,volts[:,4])
+plt.plot(acq_delays,volts[:,5])
+plt.plot(acq_delays,volts[:,6])
+plt.plot(acq_delays,volts[:,7])
+plt.plot(acq_delays,volts[:,8])
+plt.plot(acq_delays,volts[:,9])
+plt.xlabel('Time (s)')
+plt.ylabel('SMU Voltage')
 
 plt.figure()
-plt.plot(acq_delays,currs,'k.')
+plt.plot(acq_delays,currs[:,0],'k.')
+plt.plot(acq_delays,currs[:,1], 'r.')
+plt.plot(acq_delays,currs[:,2])
+plt.plot(acq_delays,currs[:,3])
+plt.plot(acq_delays,currs[:,4])
+plt.plot(acq_delays,currs[:,5])
+plt.plot(acq_delays,currs[:,6])
+plt.plot(acq_delays,currs[:,7])
+plt.plot(acq_delays,currs[:,8])
+plt.plot(acq_delays,currs[:,9])
+
+
+plt.xlabel('Time (s)')
+plt.ylabel('SMU Current')
 
 
 
@@ -125,6 +171,6 @@ plt.plot(acq_delays,currs,'k.')
 
 
 
-volt1, curr1 = pulse_map(1.5,1,1.5/2)
+# volt1, curr1 = pulse_map(1.5,1,1.5/2)
 
 
