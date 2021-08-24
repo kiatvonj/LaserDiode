@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pyvisa
+import time
 # import serial
 
 rm = pyvisa.ResourceManager()
@@ -39,16 +40,18 @@ SMU.write('*RST')
 SMU.timeout = 10000 # sets waiting time to timeeout in ms
 DMM.timeout = 10000
 
-def pulse_map(trig_time,pulse_width,acq_delay):
+def pulse_map(trig_time,pulse_width,acq_delay, curr_peak):
     SMU.write('SENS:REM ON')            # Connection type: 4-wire mode
-    
-    curr_peak = 400e-3
+
     
     # trig_time = 1.5    # seconds
     # pulse_width = 0.5  # seconds
-    trans_delay = trig_time*0.4 # (trig_time/2-pulse_width) # seconds
-    pulse_delay = trig_time*0.1 # pulse_width/2  # seconds
+    trans_delay = (trig_time/2-pulse_width/2) # seconds
+    pulse_delay = pulse_width/2  # seconds
     # acq_delay =  trig_time/2  # seconds
+    
+    rise_time = 75e-6 # seconds
+    mtime = pulse_width - 2*rise_time
      
     
     # DMM.write('CONF:VOLT:DC AUTO')
@@ -57,36 +60,37 @@ def pulse_map(trig_time,pulse_width,acq_delay):
     # Defining function: pulse shape w/ base and peak values
     SMU.write('SOUR:FUNC:MODE CURR') # set source output to current
     SMU.write('SOUR:FUNC:SHAP PULS') # set output shape to pulse
-    SMU.write('SOUR:CURR 0')         # set base value of the pulse
-    SMU.write('SOUR:CURR:TRIG ' + str(curr_peak)) # set peak value of the pulse
+    SMU.write('SOUR:CURR:LEV:IMM 1e-3')         # set base value of the pulse
+    SMU.write('SOUR:CURR:LEV:TRIG ' + str(curr_peak)) # set peak value of the pulse
     
     # Defining total trigger time and count
-    SMU.write('TRIG:SOUR TIM')  # sets the timer trigger source
-    SMU.write('TRIG:TIM ' + str(trig_time))  # sets trigger interval in seconds
-    SMU.write('TRIG:COUN 10')    # sets the trigger count to 3
+    # SMU.write('TRIG:SOUR TIM')  # sets the timer trigger source
+    # SMU.write('TRIG:TIM ' + str(trig_time))  # sets trigger interval in seconds
+    SMU.write('TRIG:ALL:COUN 10')    # sets the trigger count to 3
     
     
     # Defining pulse time after start of trigger and pulse width (Need to be < TRIG:TIM )
-    SMU.write('TRIG:TRAN:DEL ' + str(trans_delay)) # sets the transient delay
-    SMU.write('SOUR:PULS:DEL ' + str(pulse_delay)) # set pulse delay (in seconds)
+    SMU.write('TRIG:TRAN:DEL 0')# + str(trans_delay)) # sets the transient delay
+    SMU.write('SOUR:PULS:DEL 75e-6')# + str(pulse_delay)) # set pulse delay (in seconds)
     SMU.write('SOUR:PULS:WIDT ' + str(pulse_width)) # set pulse width (in seconds)
     
     # Defining Acquisition time (measurement) after start of trigger
-    SMU.write('TRIG:ACQ:DEL ' + str(acq_delay))   # sets the acquisition delay (in seconds)
-    
+    SMU.write('TRIG:ACQ:DEL '+ str(acq_delay))   # sets the acquisition delay (in seconds)
+    SMU.write('TRIG:ACQ:TIM 0')
+    SMU.write('TRIG:TRAN:TIM 0')
     
     SMU.write('SENS:FUNC ALL ') # sets the measurement type to all
     
     SMU.write('SENS:VOLT:RANG:AUTO ON') # automatic range measurement (?)
-    SMU.write('SENS:VOLT:APER 0.1')  # sets the measurement aperture time
-    SMU.write('SENS:VOLT:PROT 5')    # sets the compliance limit
+    SMU.write('SENS:VOLT:DC:APER 100e-6')# + str(mtime))  # sets the measurement aperture time (integration time for point measurement)
+    SMU.write('SENS:VOLT:PROT:LEV 5')    # sets the compliance limit
     
     SMU.write('SENS:CURR:RANG:AUTO ON') # automatic range measurement
     
     
     DMM.write('TRIG:COUN 1')
-    DMM.write('TRIG:DEL ' + str(acq_delay))
-    
+    # DMM.write('TRIG:DEL ' + str(acq_delay))
+    DMM.write('TRIG:DEL 0.2')
     
     SMU.write('OUTP ON')    # turns the output source on
     SMU.write('INIT')       # starts pulse output and spot measurements
@@ -103,8 +107,9 @@ def pulse_map(trig_time,pulse_width,acq_delay):
     return (voltage,current,DMM_voltage)
 
 
-pulse_width = 0.001 # second
-trigger_length = 0.3 # pulse_width*5 # second
+pulse_width = 100e-6 # second
+trigger_length = 0.2     # pulse_width*5 # second
+curr_peak = 400e-3
 
 trig_start_to_pulse_delay = np.linspace(0,trigger_length/2-pulse_width,5) # sample points from 0 to start of pulse rise
 pulse_sample = np.linspace(trigger_length/2-pulse_width,trigger_length/2+pulse_width,15)
@@ -112,17 +117,20 @@ end_pulse_to_end_trigger = np.linspace(trigger_length/2+pulse_width,trigger_leng
 # acq_delays = np.linspace(0,trigger_length,20)
 acq_delays = np.concatenate((trig_start_to_pulse_delay,pulse_sample,end_pulse_to_end_trigger))
 
-# acq_delays = np.arange(.49,.51,0.001)
+acq_delays = np.arange(0, 1e-3, 1e-3/100)
+
 
 volts = []
 currs = []
 DMM_volts = []
 
 for i in acq_delays:
-    voltage, current, DMM_voltage = pulse_map(trigger_length,pulse_width,i)
+    voltage, current, DMM_voltage = pulse_map(trigger_length,pulse_width,i, curr_peak)
+    
     volts.append(voltage)
     currs.append(current)
     DMM_volts.append(DMM_voltage)
+    time.sleep(10*pulse_width+1)
     
 SMU.write('OUTP OFF')
 SMU.write('*RST')
@@ -161,13 +169,14 @@ plt.plot(acq_delays,currs[:,9])
 
 plt.xlabel('Time (s)')
 plt.ylabel('SMU Current')
+# plt.savefig('../PulseMapsTesting/PW_{0:.1e}_TL_{1:.1e}_CP_{2:.1e}.png'.format(pulse_width, trigger_length, curr_peak))
 
 
 
 plt.figure()
 plt.plot(acq_delays,DMM_volts)
 plt.ylabel('DMM Voltage')
-plt.xlabel('Acquisition Time')
+plt.xlabel('Acquisition Times')
 
 
 
