@@ -4,6 +4,76 @@ import pyvisa
 import time
 # import serial
 
+def reprogram_experiment(SMU, DMM, pulsewidth, reptime, risetime): # pulsewidth > 160us, reptime > 
+    # Reprogram DMM first
+    DMM.write('CMDSET AGILENT')
+    DMM.write('SENS:VOLT:DC:NPLC 10')
+    DMM.write('SENS:VOLT:DC:RANG:AUTO 1')
+    DMM.write('SENS:VOLT:DC:RANG:UPP 5')
+    
+    DMM.write('TRIG:COUNT 1')
+    DMM.write('TRIG:DELAY 0.2')
+    DMM.write('TRIG:SOUR:IMM')
+    
+    # Reprogram SMU
+    SMU.write('SOUR:FUNC:MODE CURR')
+    SMU.write('SOUR:CURR:LEV:IMM 0.1')
+    SMU.write('SENS:VOLT:PROT:LEV 3.5')
+    
+    # risetime =  75 # us
+    mtime = pulsewidth - 2*risetime
+    SMU.write('SENS:VOLT:DC:APER ' + str(mtime) + 'e-6')
+    
+    SMU.write('SOUR:FUNC:SHAP PULS')
+    SMU.write('SOUR:PULS:DEL 0')
+    SMU.write('SOUR:PULS:WIDTH ' + str(pulsewidth) + 'e-6')
+    SMU.write('SOUR:CURR:LEV:TRIG 1.0')
+    
+    nevents = 2e6 // reptime # 2 seconds total divided by the reptime
+    SMU.write('TRIG:ALL:COUNT ' + str(nevents))
+    SMU.write('TRIG:ACQ:DEL ' + str(risetime) + 'e-6')
+    SMU.write('TRIG:ACQ:TIM ' + str(reptime) + 'e-6')
+    SMU.write('TRIG:TRAN:DEL 0')
+    SMU.write('TRIG:TRAN:TIM ' + str(reptime) + 'e-6')
+    return
+
+def measure(SMU, DMM, pulse_amplitude, pulsewidth, reptime, acqHoldoff):
+    smuCurrentRampTime = 60 # us/A
+    
+    SMU.write('OUTP ON')
+    
+    acqInitHoldoff = 25 # us
+    SMU.write('SOUR:CURR:LEV:TRIG ' + str(pulse_amplitude))
+    
+    # acqHoldoff = acqInitHoldoff + pulse_amplitude * smuCurrentRampTime
+    acqAper = pulsewidth - acqInitHoldoff - 2*pulse_amplitude * smuCurrentRampTime
+    
+    if acqAper < 50:
+        print('uh fix your aperture time, its less than 50 us!')
+    
+    dutyCycle = (pulsewidth - pulse_amplitude * smuCurrentRampTime) / reptime
+    SMU.write('TRIG:ACQ:DEL ' + str(acqHoldoff) + 'e-6')
+    SMU.write('SENS:VOLT:DC:APER ' + str(acqAper) + 'e-6')
+    
+    SMU_dump(SMU)
+    
+    SMU.write('INIT:ALL')
+    
+    # DMM.write('INIT:IMM')
+    # DMM.write('*WAI')
+    # DMM_volt = DMM.query('*FETC?')
+    
+    SMU.write('*WAI')
+    s =SMU.query('TRAC:STAT:DATA?')
+
+    SMU_volt = float(s.split(',')[0])
+    SMU_curr = float(s.split(',')[1])
+    
+    SMU.write('OUTP OFF')
+    return [SMU_volt, SMU_curr]
+
+
+
 rm = pyvisa.ResourceManager()
 print(rm.list_resources())
 
@@ -37,8 +107,8 @@ SMU.write('*RST')
 
 
 
-SMU.timeout = 10000 # sets waiting time to timeeout in ms
-DMM.timeout = 10000
+SMU.timeout = 100000 # sets waiting time to timeeout in ms
+DMM.timeout = 100000
 
 def pulse_map(trig_time,pulse_width,acq_delay, curr_peak):
     SMU.write('SENS:REM ON')            # Connection type: 4-wire mode
@@ -111,60 +181,76 @@ pulse_width = 100e-6 # second
 trigger_length = 0.2     # pulse_width*5 # second
 curr_peak = 400e-3
 
+
+
 trig_start_to_pulse_delay = np.linspace(0,trigger_length/2-pulse_width,5) # sample points from 0 to start of pulse rise
 pulse_sample = np.linspace(trigger_length/2-pulse_width,trigger_length/2+pulse_width,15)
 end_pulse_to_end_trigger = np.linspace(trigger_length/2+pulse_width,trigger_length,5)
 # acq_delays = np.linspace(0,trigger_length,20)
 acq_delays = np.concatenate((trig_start_to_pulse_delay,pulse_sample,end_pulse_to_end_trigger))
 
-acq_delays = np.arange(0, 1e-3, 1e-3/100)
+acq_delays = np.arange(0, 100, 100/100)
 
+
+pulse_width = 400 # us
+reptime = 2000
+curr_peak = 0.4
 
 volts = []
 currs = []
 DMM_volts = []
 
 for i in acq_delays:
-    voltage, current, DMM_voltage = pulse_map(trigger_length,pulse_width,i, curr_peak)
+    reprogram_experiment(SMU, DMM, pulse_width, reptime, i )
+    V, I = measure(SMU, DMM, curr_peak, pulse_width, reptime, i)
+    volts.append(V)
+    currs.append(I)
+    time.sleep(1)
+
+
+# for i in acq_delays:
+#     voltage, current, DMM_voltage = pulse_map(trigger_length,pulse_width,i, curr_peak)
     
-    volts.append(voltage)
-    currs.append(current)
-    DMM_volts.append(DMM_voltage)
-    time.sleep(10*pulse_width+1)
+#     volts.append(voltage)
+#     currs.append(current)
+#     DMM_volts.append(DMM_voltage)
+#     time.sleep(10*pulse_width+1)
     
 SMU.write('OUTP OFF')
 SMU.write('*RST')
     
 volts = np.array(volts)
 currs = np.array(currs)
-print(volts[:,0])
+# print(volts[:,0])
 
 
 plt.figure()
-plt.plot(acq_delays,volts[:,0],'k.')
-plt.plot(acq_delays,volts[:,1], 'r.')
-plt.plot(acq_delays,volts[:,2])
-plt.plot(acq_delays,volts[:,3])
-plt.plot(acq_delays,volts[:,4])
-plt.plot(acq_delays,volts[:,5])
-plt.plot(acq_delays,volts[:,6])
-plt.plot(acq_delays,volts[:,7])
-plt.plot(acq_delays,volts[:,8])
-plt.plot(acq_delays,volts[:,9])
+plt.plot(acq_delays, volts, 'k.')
+# plt.plot(acq_delays,volts[:,0],'k.')
+# plt.plot(acq_delays,volts[:,1], 'r.')
+# plt.plot(acq_delays,volts[:,2])
+# plt.plot(acq_delays,volts[:,3])
+# plt.plot(acq_delays,volts[:,4])
+# plt.plot(acq_delays,volts[:,5])
+# plt.plot(acq_delays,volts[:,6])
+# plt.plot(acq_delays,volts[:,7])
+# plt.plot(acq_delays,volts[:,8])
+# plt.plot(acq_delays,volts[:,9])
 plt.xlabel('Time (s)')
 plt.ylabel('SMU Voltage')
 
 plt.figure()
-plt.plot(acq_delays,currs[:,0],'k.')
-plt.plot(acq_delays,currs[:,1], 'r.')
-plt.plot(acq_delays,currs[:,2])
-plt.plot(acq_delays,currs[:,3])
-plt.plot(acq_delays,currs[:,4])
-plt.plot(acq_delays,currs[:,5])
-plt.plot(acq_delays,currs[:,6])
-plt.plot(acq_delays,currs[:,7])
-plt.plot(acq_delays,currs[:,8])
-plt.plot(acq_delays,currs[:,9])
+plt.plot(acq_delays,currs,'k.')
+# plt.plot(acq_delays,currs[:,0],'k.')
+# plt.plot(acq_delays,currs[:,1], 'r.')
+# plt.plot(acq_delays,currs[:,2])
+# plt.plot(acq_delays,currs[:,3])
+# plt.plot(acq_delays,currs[:,4])
+# plt.plot(acq_delays,currs[:,5])
+# plt.plot(acq_delays,currs[:,6])
+# plt.plot(acq_delays,currs[:,7])
+# plt.plot(acq_delays,currs[:,8])
+# plt.plot(acq_delays,currs[:,9])
 
 
 plt.xlabel('Time (s)')
