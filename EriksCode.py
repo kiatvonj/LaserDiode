@@ -17,10 +17,10 @@ def reprogram_experiment(SMU, DMM, pulsewidth, reptime): # pulsewidth > 160us, r
     
     # Reprogram SMU
     SMU.write('SOUR:FUNC:MODE CURR')
-    SMU.write('SOUR:CURR:LEV:IMM 0.1')
-    SMU.write('SENS:VOLT:PROT:LEV 3.5')
+    SMU.write('SOUR:CURR:LEV:IMM 0')
+    SMU.write('SENS:VOLT:PROT:LEV 5')
     
-    risetime =  75 # us
+    risetime =  150 # us
     mtime = pulsewidth - 2*risetime
     SMU.write('SENS:VOLT:DC:APER ' + str(mtime) + 'e-6')
     
@@ -59,6 +59,8 @@ def measure(SMU, DMM, pulse_amplitude, pulsewidth, reptime):
     
     if acqAper < 50:
         print('uh fix your aperture time, its less than 50 us!')
+        
+    # acqAper = 50
     
     dutyCycle = (pulsewidth - pulse_amplitude * smuCurrentRampTime) / reptime
     SMU.write('TRIG:ACQ:DEL ' + str(acqHoldoff) + 'e-6')
@@ -74,12 +76,12 @@ def measure(SMU, DMM, pulse_amplitude, pulsewidth, reptime):
     
     SMU.write('*WAI')
     s =SMU.query('TRAC:STAT:DATA?')
-    print(s)
-    SMU_volt = s.split(',')[0]
-    SMU_curr = s.split(',')[1]
+
+    SMU_volt = float(s.split(',')[0])
+    SMU_curr = float(s.split(',')[1])
     
     SMU.write('OUTP OFF')
-    return
+    return [SMU_volt, SMU_curr]
 
 
 
@@ -109,13 +111,36 @@ SMU.timeout = 100000 # sets waiting time to timeeout in ms
 DMM.timeout = 100000
 
 
+reptime = 2000
 
-reprogram_experiment(SMU, DMM, 400, 200)
-measure(SMU, DMM, 0.1, 400, 200)
-measure(SMU, DMM, 0.2, 400, 200)
-measure(SMU, DMM, 0.3, 400, 200)
-measure(SMU, DMM, 0.4, 400, 200)
+width_list = np.arange(100,500,100)
+ampl_list = np.arange(0.01,0.4,0.05)
 
+for i in width_list:    
+    reprogram_experiment(SMU, DMM, i, reptime)
+    
+    for j in ampl_list:
+        print('pulse_widt: ', i, ' pulse_amp: ', round(j,5))
+        print(measure(SMU, DMM, j, i, reptime))
+        print('\n')
+        
+    
+
+
+
+# def current_list(max_current):
+#     width_list = np.arange(100,800,50)
+#     cur_list = []
+#     for i in width_list:
+#         reprogram_experiment(SMU, DMM, i, 2000)
+#         cur_list.append(measure(SMU, DMM, max_current, i, 2000)[1])
+#     cur_list = np.array(cur_list)
+    
+#     plt.plot(width_list, cur_list/max(cur_list), 'o-')
+#     return
+
+# current_list(0.2)
+# current_list(0.4)
 
 
 

@@ -7,43 +7,51 @@ import time
 def reprogram_experiment(SMU, DMM, pulsewidth, reptime, risetime): # pulsewidth > 160us, reptime > 
     # Reprogram DMM first
     DMM.write('CMDSET AGILENT')
-    DMM.write('SENS:VOLT:DC:NPLC 10')
+    DMM.write('SENS:VOLT:DC:NPLC 0')
     DMM.write('SENS:VOLT:DC:RANG:AUTO 1')
     DMM.write('SENS:VOLT:DC:RANG:UPP 5')
     
     DMM.write('TRIG:COUNT 1')
-    DMM.write('TRIG:DELAY 0.2')
+    DMM.write('TRIG:DELAY 0')
     DMM.write('TRIG:SOUR:IMM')
     
     # Reprogram SMU
     SMU.write('SOUR:FUNC:MODE CURR')
-    SMU.write('SOUR:CURR:LEV:IMM 0.1')
-    SMU.write('SENS:VOLT:PROT:LEV 3.5')
+    SMU.write('SOUR:CURR:LEV:IMM 0')
+    SMU.write('SENS:VOLT:PROT:LEV 5')
     
     # risetime =  75 # us
     mtime = pulsewidth - 2*risetime
-    SMU.write('SENS:VOLT:DC:APER ' + str(mtime) + 'e-6')
+    # mtime = 50 
+    SMU.write('SENS:VOLT:DC:APER 0')# + str(mtime) + 'e-6')
     
     SMU.write('SOUR:FUNC:SHAP PULS')
-    SMU.write('SOUR:PULS:DEL 0')
+    SMU.write('SOUR:PULS:DEL 100e-6')
     SMU.write('SOUR:PULS:WIDTH ' + str(pulsewidth) + 'e-6')
     SMU.write('SOUR:CURR:LEV:TRIG 1.0')
     
     nevents = 2e6 // reptime # 2 seconds total divided by the reptime
     SMU.write('TRIG:ALL:COUNT ' + str(nevents))
-    SMU.write('TRIG:ACQ:DEL ' + str(risetime) + 'e-6')
-    SMU.write('TRIG:ACQ:TIM ' + str(reptime) + 'e-6')
+    SMU.write('TRIG:ACQ:DEL 0')# + str(risetime) + 'e-6')
+    SMU.write('TRIG:ACQ:TIM 0')# + str(reptime) + 'e-6')
     SMU.write('TRIG:TRAN:DEL 0')
-    SMU.write('TRIG:TRAN:TIM ' + str(reptime) + 'e-6')
+    SMU.write('TRIG:TRAN:TIM 0')# + str(reptime) + 'e-6')
+    return
+
+def SMU_dump(SMU):
+    SMU.write('TRAC:FEED:CONT NEV')
+    SMU.write('TRAC:CLE')
+    SMU.write('TRAC:FEED SENS')
+    SMU.write('TRAC:FEED:CONT NEXT')
     return
 
 def measure(SMU, DMM, pulse_amplitude, pulsewidth, reptime, acqHoldoff):
-    smuCurrentRampTime = 60 # us/A
+    smuCurrentRampTime = 0 # us/A
     
     SMU.write('OUTP ON')
     
     acqInitHoldoff = 25 # us
-    SMU.write('SOUR:CURR:LEV:TRIG ' + str(pulse_amplitude))
+    SMU.write('SOUR:CURR:TRIG ' + str(pulse_amplitude))
     
     # acqHoldoff = acqInitHoldoff + pulse_amplitude * smuCurrentRampTime
     acqAper = pulsewidth - acqInitHoldoff - 2*pulse_amplitude * smuCurrentRampTime
@@ -53,7 +61,7 @@ def measure(SMU, DMM, pulse_amplitude, pulsewidth, reptime, acqHoldoff):
     
     dutyCycle = (pulsewidth - pulse_amplitude * smuCurrentRampTime) / reptime
     SMU.write('TRIG:ACQ:DEL ' + str(acqHoldoff) + 'e-6')
-    SMU.write('SENS:VOLT:DC:APER ' + str(acqAper) + 'e-6')
+    SMU.write('SENS:VOLT:DC:APER 0')# + str(acqAper) + 'e-6')
     
     SMU_dump(SMU)
     
@@ -72,43 +80,6 @@ def measure(SMU, DMM, pulse_amplitude, pulsewidth, reptime, acqHoldoff):
     SMU.write('OUTP OFF')
     return [SMU_volt, SMU_curr]
 
-
-
-rm = pyvisa.ResourceManager()
-print(rm.list_resources())
-
-name1, name2 = rm.list_resources()
-
-if 'MY' in name1:
-    SMU_name = name1
-    DMM_name = name2
-else:
-    SMU_name = name2
-    DMM_name = name1
-
-
-SMU = rm.open_resource(SMU_name)
-DMM = rm.open_resource(DMM_name)
-
-print(SMU.query('*IDN?'))
-print(DMM.query('*IDN?'))            # this WOULD NOT work with the Fluke DMM, switched to RIGOL
-print('\n')
-
-SMU.write('*RST')
-
-
-# currents = np.linspace(0,0.05,10)
-# actual_currents = []
-# SMU_volt = []
-# DMM_volt = []
-
-# for i in currents:
-# current = str(i)
-
-
-
-SMU.timeout = 100000 # sets waiting time to timeeout in ms
-DMM.timeout = 100000
 
 def pulse_map(trig_time,pulse_width,acq_delay, curr_peak):
     SMU.write('SENS:REM ON')            # Connection type: 4-wire mode
@@ -177,24 +148,64 @@ def pulse_map(trig_time,pulse_width,acq_delay, curr_peak):
     return (voltage,current,DMM_voltage)
 
 
-pulse_width = 100e-6 # second
-trigger_length = 0.2     # pulse_width*5 # second
-curr_peak = 400e-3
+
+rm = pyvisa.ResourceManager()
+print(rm.list_resources())
+
+name1, name2 = rm.list_resources()
+
+if 'MY' in name1:
+    SMU_name = name1
+    DMM_name = name2
+else:
+    SMU_name = name2
+    DMM_name = name1
+
+
+SMU = rm.open_resource(SMU_name)
+DMM = rm.open_resource(DMM_name)
+
+print(SMU.query('*IDN?'))
+print(DMM.query('*IDN?'))            # this WOULD NOT work with the Fluke DMM, switched to RIGOL
+print('\n')
+
+SMU.write('*RST')
+
+
+# currents = np.linspace(0,0.05,10)
+# actual_currents = []
+# SMU_volt = []
+# DMM_volt = []
+
+# for i in currents:
+# current = str(i)
 
 
 
-trig_start_to_pulse_delay = np.linspace(0,trigger_length/2-pulse_width,5) # sample points from 0 to start of pulse rise
-pulse_sample = np.linspace(trigger_length/2-pulse_width,trigger_length/2+pulse_width,15)
-end_pulse_to_end_trigger = np.linspace(trigger_length/2+pulse_width,trigger_length,5)
+SMU.timeout = 100000 # sets waiting time to timeeout in ms
+DMM.timeout = 100000
+
+
+
+# pulse_width = 100e-6 # second
+# trigger_length = 0.2     # pulse_width*5 # second
+# curr_peak = 400e-3
+
+
+
+# trig_start_to_pulse_delay = np.linspace(0,trigger_length/2-pulse_width,5) # sample points from 0 to start of pulse rise
+# pulse_sample = np.linspace(trigger_length/2-pulse_width,trigger_length/2+pulse_width,15)
+# end_pulse_to_end_trigger = np.linspace(trigger_length/2+pulse_width,trigger_length,5)
 # acq_delays = np.linspace(0,trigger_length,20)
-acq_delays = np.concatenate((trig_start_to_pulse_delay,pulse_sample,end_pulse_to_end_trigger))
-
-acq_delays = np.arange(0, 100, 100/100)
+# acq_delays = np.concatenate((trig_start_to_pulse_delay,pulse_sample,end_pulse_to_end_trigger))
 
 
-pulse_width = 400 # us
+
+pulse_width = 100 # us
 reptime = 2000
-curr_peak = 0.4
+curr_peak = 0.02
+
+acq_delays = np.arange(0, 400, 400/30)
 
 volts = []
 currs = []
@@ -205,7 +216,7 @@ for i in acq_delays:
     V, I = measure(SMU, DMM, curr_peak, pulse_width, reptime, i)
     volts.append(V)
     currs.append(I)
-    time.sleep(1)
+    time.sleep(0.1)
 
 
 # for i in acq_delays:
@@ -239,6 +250,7 @@ plt.plot(acq_delays, volts, 'k.')
 plt.xlabel('Time (s)')
 plt.ylabel('SMU Voltage')
 
+
 plt.figure()
 plt.plot(acq_delays,currs,'k.')
 # plt.plot(acq_delays,currs[:,0],'k.')
@@ -251,10 +263,9 @@ plt.plot(acq_delays,currs,'k.')
 # plt.plot(acq_delays,currs[:,7])
 # plt.plot(acq_delays,currs[:,8])
 # plt.plot(acq_delays,currs[:,9])
-
-
 plt.xlabel('Time (s)')
 plt.ylabel('SMU Current')
+# plt.ylim(0, 1.5*curr_peak)
 # plt.savefig('../PulseMapsTesting/PW_{0:.1e}_TL_{1:.1e}_CP_{2:.1e}.png'.format(pulse_width, trigger_length, curr_peak))
 
 
