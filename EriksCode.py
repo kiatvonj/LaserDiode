@@ -20,7 +20,7 @@ def reprogram_experiment(SMU, DMM, pulsewidth, reptime): # pulsewidth > 160us, r
     SMU.write('SOUR:CURR:LEV:IMM 0')
     SMU.write('SENS:VOLT:PROT:LEV 5')
     
-    risetime =  150 # us
+    risetime =  100 # us
     mtime = pulsewidth - 2*risetime
     SMU.write('SENS:VOLT:DC:APER ' + str(mtime) + 'e-6')
     
@@ -112,17 +112,24 @@ DMM.timeout = 100000
 
 
 reptime = 2000
+pulsewidth = 500
+amplitude = 0.05
 
-width_list = np.arange(100,500,100)
-ampl_list = np.arange(0.01,0.4,0.05)
+for i in range(2):
+    reprogram_experiment(SMU, DMM, pulsewidth, reptime)
+    print(measure(SMU, DMM, amplitude, pulsewidth, reptime)[0])
 
-for i in width_list:    
-    reprogram_experiment(SMU, DMM, i, reptime)
+
+# width_list = np.arange(100,500,100)
+# ampl_list = np.arange(0.01,0.4,0.05)
+
+# for i in width_list:    
+#     reprogram_experiment(SMU, DMM, i, reptime)
     
-    for j in ampl_list:
-        print('pulse_widt: ', i, ' pulse_amp: ', round(j,5))
-        print(measure(SMU, DMM, j, i, reptime))
-        print('\n')
+#     for j in ampl_list:
+#         print('pulse_widt: ', i, ' pulse_amp: ', round(j,5))
+#         print(measure(SMU, DMM, j, i, reptime))
+#         print('\n')
         
     
 

@@ -7,7 +7,7 @@ import time
 def reprogram_experiment(SMU, DMM, pulsewidth, reptime, risetime): # pulsewidth > 160us, reptime > 
     # Reprogram DMM first
     DMM.write('CMDSET AGILENT')
-    DMM.write('SENS:VOLT:DC:NPLC 0')
+    DMM.write('SENS:VOLT:DC:NPLC 10')
     DMM.write('SENS:VOLT:DC:RANG:AUTO 1')
     DMM.write('SENS:VOLT:DC:RANG:UPP 5')
     
@@ -23,15 +23,15 @@ def reprogram_experiment(SMU, DMM, pulsewidth, reptime, risetime): # pulsewidth 
     # risetime =  75 # us
     mtime = pulsewidth - 2*risetime
     # mtime = 50 
-    SMU.write('SENS:VOLT:DC:APER 0')# + str(mtime) + 'e-6')
+    SMU.write('SENS:VOLT:DC:APER 100e-6')# + str(mtime) + 'e-6')
     
     SMU.write('SOUR:FUNC:SHAP PULS')
-    SMU.write('SOUR:PULS:DEL 100e-6')
+    SMU.write('SOUR:PULS:DEL 0')
     SMU.write('SOUR:PULS:WIDTH ' + str(pulsewidth) + 'e-6')
     SMU.write('SOUR:CURR:LEV:TRIG 1.0')
     
     nevents = 2e6 // reptime # 2 seconds total divided by the reptime
-    SMU.write('TRIG:ALL:COUNT ' + str(nevents))
+    SMU.write('TRIG:ALL:COUNT 100')# + str(nevents))
     SMU.write('TRIG:ACQ:DEL 0')# + str(risetime) + 'e-6')
     SMU.write('TRIG:ACQ:TIM 0')# + str(reptime) + 'e-6')
     SMU.write('TRIG:TRAN:DEL 0')
@@ -46,11 +46,11 @@ def SMU_dump(SMU):
     return
 
 def measure(SMU, DMM, pulse_amplitude, pulsewidth, reptime, acqHoldoff):
-    smuCurrentRampTime = 0 # us/A
+    smuCurrentRampTime = 60 # us/A
     
     SMU.write('OUTP ON')
     
-    acqInitHoldoff = 25 # us
+    acqInitHoldoff = 210 # us
     SMU.write('SOUR:CURR:TRIG ' + str(pulse_amplitude))
     
     # acqHoldoff = acqInitHoldoff + pulse_amplitude * smuCurrentRampTime
@@ -61,7 +61,7 @@ def measure(SMU, DMM, pulse_amplitude, pulsewidth, reptime, acqHoldoff):
     
     dutyCycle = (pulsewidth - pulse_amplitude * smuCurrentRampTime) / reptime
     SMU.write('TRIG:ACQ:DEL ' + str(acqHoldoff) + 'e-6')
-    SMU.write('SENS:VOLT:DC:APER 0')# + str(acqAper) + 'e-6')
+    SMU.write('SENS:VOLT:DC:APER 50e-6') # + str(acqAper) + 'e-6')
     
     SMU_dump(SMU)
     
@@ -201,11 +201,12 @@ DMM.timeout = 100000
 
 
 
-pulse_width = 100 # us
 reptime = 2000
-curr_peak = 0.02
+curr_peak = 1.75
 
-acq_delays = np.arange(0, 400, 400/30)
+pulse_width = 400 # us
+
+acq_delays = np.arange(200, 350, 2.5)
 
 volts = []
 currs = []
