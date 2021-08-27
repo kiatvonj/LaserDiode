@@ -157,8 +157,11 @@ for i in currents:
 SMU.write('OUTP OFF')
 SMU.write('*RST')
     
-SMU_volts = np.array(SMU_volts)
-SMU_currs = np.array(SMU_currs)
+# SMU_volts = np.array(SMU_volts)
+# SMU_currs = np.array(SMU_currs)
+SMU_volts.insert(0,'SMU Volt (V)')
+SMU_currs.insert(0,'SMU Curr (A)')
+
 
 
 data_dir = './data_CavLen_Temp/'
