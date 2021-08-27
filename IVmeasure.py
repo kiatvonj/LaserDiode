@@ -2,9 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pyvisa
 import time
+import os
+import argparse
 
 
-def reprogram_experiment(SMU, DMM, count = 100, pulse_width = 500, aper_time = 50): # pulsewidth > 160us, reptime > 
+def reprogram_experiment(SMU, DMM, count = 100, aper_time = 50, init_pulse_width = 500): # pulsewidth > 160us, reptime > 
     # Reprogram DMM first
     # DMM.write('CMDSET AGILENT')
     # DMM.write('SENS:VOLT:DC:NPLC 10')
@@ -25,7 +27,7 @@ def reprogram_experiment(SMU, DMM, count = 100, pulse_width = 500, aper_time = 5
     
     SMU.write('SOUR:FUNC:SHAP PULS')
     SMU.write('SOUR:PULS:DEL 0')
-    SMU.write('SOUR:PULS:WIDTH ' + str(pulse_width) + 'e-6')
+    SMU.write('SOUR:PULS:WIDTH ' + str(init_pulse_width) + 'e-6')
     SMU.write('SOUR:CURR:LEV:TRIG 1.0')
     
     SMU.write('TRIG:ALL:COUNT ' + str(count))
@@ -91,6 +93,16 @@ def measure(SMU, DMM, pulse_amplitude, aper_time = 50):
 
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument("-N", "--count", type=int, help="Number of pulses per current", default=100)
+parser.add_argument("--apertime", type=float, help="Set Aperture Time (def=50 us)", default=50)
+parser.add_argument("--minI", type=float, help="Set minimum current for sweep (in A)", default=0)
+parser.add_argument("--maxI", type=float, help="Set maximum current for sweep (in A)", default=2)
+parser.add_argument("--dI", type=float, help="Set current increment for sweep (in A)", default=0.05)
+parser.add_argument("-L", "--cavlen", type=float, help="Specify cavity length for data file (in mm)", required=True)
+parser.add_argument("-T", "--temp", type=float, help="Specify temperature for data file (in C)", required=True)
+args = parser.parse_args()
+
 rm = pyvisa.ResourceManager()
 print(rm.list_resources())
 
@@ -116,30 +128,30 @@ SMU.write('*RST')
 SMU.timeout = 100000 # sets waiting time to timeeout in ms
 DMM.timeout = 100000
 
-cav_length = 1.5 # mm
-temp = 15 # C
+cav_length = args.cavlen # mm
+temp = args.temp # C
 
-min_curr = 0
-max_curr = 20e-3
-dI = 0.5e-3
+minI = args.minI
+maxI = args.maxI
+dI = args.dI
 
-currents = np.arange(min_curr, max_curr + dI, dI)
+currents = np.arange(minI, maxI + dI, dI)
 SMU_volts = []
 SMU_currs = []
 # DMM_volt = []
 
-reprogram_experiment(SMU, DMM)
+reprogram_experiment(SMU, DMM, args.count, args.apertime)
 
 
 for i in currents: 
-    V, I = measure(SMU, DMM, i)
+    V, I = measure(SMU, DMM, i, args.apertime)
     SMU_volts.append(V)
     SMU_currs.append(I)
     print('For curr: ', i)
     print('SMU_curr = ', I)
     print('SMU_volt = ', V, '\n')
     
-    time.sleep(0.1)
+    time.sleep(1)
 
 
 SMU.write('OUTP OFF')
@@ -148,13 +160,11 @@ SMU.write('*RST')
 SMU_volts = np.array(SMU_volts)
 SMU_currs = np.array(SMU_currs)
 
-plt.figure()
-plt.plot(SMU_currs, SMU_volts, 'k.')
 
-plt.xlabel('I')
-plt.ylabel('V')
-
+data_dir = './data_CavLen_Temp/'
+if not os.path.exists(data_dir):
+    os.mkdir(data_dir)
 
 
-np.savetxt('IV_{}_{}.csv'.format(cav_length, temp), 
+np.savetxt('./data_CavLen_Temp/IV_{}_{}.csv'.format(cav_length, temp), 
            np.transpose(np.array([SMU_volts,SMU_currs])), delimiter = ',')
