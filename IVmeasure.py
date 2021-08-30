@@ -8,21 +8,21 @@ import argparse
 
 def reprogram_experiment(SMU, DMM, count = 100, aper_time = 50, init_pulse_width = 500): # pulsewidth > 160us, reptime > 
     # Reprogram DMM first
-    # DMM.write('CMDSET AGILENT')
-    # DMM.write('SENS:VOLT:DC:NPLC 10')
-    # DMM.write('SENS:VOLT:DC:RANG:AUTO 1')
-    # DMM.write('SENS:VOLT:DC:RANG:UPP 5')
+    DMM.write('CMDSET AGILENT')
+    DMM.write('SENS:VOLT:DC:NPLC 10')
+    DMM.write('SENS:VOLT:DC:RANG:AUTO 1')
+    DMM.write('SENS:VOLT:DC:RANG:UPP 5')
     
-    # DMM.write('TRIG:COUNT 1')
-    # DMM.write('TRIG:DELAY 0')
-    # DMM.write('TRIG:SOUR:IMM')
+    DMM.write('TRIG:COUNT 3')
+    DMM.write('TRIG:DELAY 0.2')
+    DMM.write('TRIG:SOUR:IMM')
     
     # Reprogram SMU
     SMU.write('SOUR:FUNC:MODE CURR')
     SMU.write('SOUR:CURR:LEV:IMM 0')
     SMU.write('SENS:VOLT:PROT:LEV 5')
 
-
+    # Set initial conditions for trigger pulse
     SMU.write('SENS:VOLT:DC:APER ' + str(aper_time) + 'e-6')
     
     SMU.write('SOUR:FUNC:SHAP PULS')
@@ -46,10 +46,10 @@ def SMU_dump(SMU):
 
 def measure(SMU, DMM, pulse_amplitude, aper_time = 50):
     
+    # Set peak currents for pulse amplitude
     SMU.write('SOUR:CURR:TRIG ' + str(pulse_amplitude))
     
-    
-    
+    # Hardcode pulse widths and acquisition delays based on peak current
     pulse_width = 250 
     acq_delay = 180
     if pulse_amplitude > 1.5:
@@ -67,28 +67,41 @@ def measure(SMU, DMM, pulse_amplitude, aper_time = 50):
     # acq_delay = pulse_width - aper_time
     # dutyCycle = (pulsewidth - pulse_amplitude * smuCurrentRampTime) / reptime # For I-L Curve
 
-
+    # Set pulse width, acquisition delay (measurement time), and aper time (integration window)
     SMU.write('SOUR:PULS:WIDTH ' + str(pulse_width) + 'e-6')
     SMU.write('TRIG:ACQ:DEL ' + str(acq_delay) + 'e-6')
     SMU.write('SENS:VOLT:DC:APER ' + str(aper_time) + 'e-6')
     
+    # Initiate SMU
     SMU.write('OUTP ON')
-    
     SMU_dump(SMU)
-    
     SMU.write('INIT:ALL')
     
-    # DMM.write('INIT:IMM')
-    # DMM.write('*WAI')
-    # DMM_volt = DMM.query('*FETC?')
+    # tau0 = time.time()
     
+    # Initiate Multimeter
+    DMM.write('INIT')
+    
+    # Read SMU measurements
     SMU.write('*WAI')
     s = SMU.query('TRAC:STAT:DATA?')
+    
+    # Check time of SMU measurement and wait if measurment took < 2s
+    # tpassed = time.time()-tau0
+    # offtime = 2 - tpassed
+    # if offtime > 0:
+    #     time.sleep(offtime)
+    
+    DMM.write('WAI')
+    DMM_volt = DMM.query('FETC?')
+    
+
 
     SMU_volt = float(s.split(',')[0])
     SMU_curr = float(s.split(',')[1])
+    print('DMM VOLTS: ', DMM_volt)
     
-    SMU.write('OUTP OFF')
+    # SMU.write('OUTP OFF')
     return [SMU_volt, SMU_curr]
 
 
@@ -116,6 +129,7 @@ else:
     DMM_name = name1
 
 
+
 SMU = rm.open_resource(SMU_name)
 DMM = rm.open_resource(DMM_name)
 
@@ -124,7 +138,9 @@ print(DMM.query('*IDN?'))            # this WOULD NOT work with the Fluke DMM, s
 print('\n')
 
 SMU.write('*RST')
+# DMM.write('*RST')
 
+SMU.write('SENS:REM ON') # sets to 4-wire mode (increases accuracy at low res/curr)
 SMU.timeout = 100000 # sets waiting time to timeeout in ms
 DMM.timeout = 100000
 
@@ -159,8 +175,8 @@ SMU.write('*RST')
     
 # SMU_volts = np.array(SMU_volts)
 # SMU_currs = np.array(SMU_currs)
-SMU_volts.insert(0,'SMU Volt (V)')
-SMU_currs.insert(0,'SMU Curr (A)')
+# SMU_volts.insert(0,'SMU Volt (V)')
+# SMU_currs.insert(0,'SMU Curr (A)')
 
 
 
@@ -171,3 +187,25 @@ if not os.path.exists(data_dir):
 
 np.savetxt('./data_CavLen_Temp/IV_{}_{}.csv'.format(cav_length, temp), 
            np.transpose(np.array([SMU_volts,SMU_currs])), delimiter = ',')
+
+
+
+
+
+def DMM_waitmeas(DMM,t):
+    DMM.write('CMDSET AGILENT')
+    DMM.write('SENS:FUNC:VOLT:DC')
+    DMM.write('CONF:VOLT:DC AUTO')
+    DMM.write('CALC:STAT ON')
+    DMM.write('CALC:FUNC AVER')
+    
+    time.sleep(t)
+    
+    max_volt = DMM.query('CALC:AVER:MAX?')
+    count = DMM.query('CALC:AVER:COUN?')
+    DMM.write('CALC:STAT OFF')
+    return [max_volt,count]
+
+
+
+
