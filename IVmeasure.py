@@ -167,17 +167,17 @@ for i in currents:
     print('SMU_curr = ', I)
     print('SMU_volt = ', V, '\n')
     
-    time.sleep(1)
+    time.sleep(2)
 
 
 SMU.write('OUTP OFF')
 SMU.write('*RST')
-    
-# SMU_volts = np.array(SMU_volts)
-# SMU_currs = np.array(SMU_currs)
-# SMU_volts.insert(0,'SMU Volt (V)')
-# SMU_currs.insert(0,'SMU Curr (A)')
 
+
+SMU_volts.insert(0,'SMU Volt (V)')
+SMU_currs.insert(0,'SMU Curr (A)')
+SMU_volts = np.array(SMU_volts)
+SMU_currs = np.array(SMU_currs)
 
 
 data_dir = './data_CavLen_Temp/'
@@ -186,7 +186,7 @@ if not os.path.exists(data_dir):
 
 
 np.savetxt('./data_CavLen_Temp/IV_{}_{}.csv'.format(cav_length, temp), 
-           np.transpose(np.array([SMU_volts,SMU_currs])), delimiter = ',')
+           np.transpose(np.array([SMU_volts,SMU_currs])), fmt = '%s', delimiter = ',')
 
 
 
