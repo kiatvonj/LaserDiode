@@ -63,7 +63,9 @@ def measure(SMU, DMM, pulse_amplitude, aper_time = 50):
         pulse_width = 500
         acq_delay = 440
     
-    print(pulse_width)
+    pulse_width = 500
+    acq_delay = 440
+    # print(pulse_width)
     
     # acq_delay = pulse_width - aper_time
     # dutyCycle = (pulsewidth - pulse_amplitude * smuCurrentRampTime) / reptime # For I-L Curve
@@ -103,7 +105,7 @@ def measure(SMU, DMM, pulse_amplitude, aper_time = 50):
 
     SMU_volt = float(s.split(',')[0])
     SMU_curr = float(s.split(',')[1])
-    DMM_volt = (float(v[0]) + float(v[1]) + float(v[2])) / 3
+    DMM_volt = float(v[0]) # (float(v[0]) + float(v[1]) + float(v[2])) / 3
 
     return [SMU_volt, SMU_curr, DMM_volt]
 
@@ -166,7 +168,7 @@ dI = args.dI
 currents = np.arange(minI, maxI + dI, dI)
 SMU_volts = []
 SMU_currs = []
-DMM_volt = []
+DMM_volts = []
 
 reprogram_experiment(SMU, DMM, args.count, args.apertime)
 
@@ -179,7 +181,7 @@ for i in currents:
     print('SMU_curr = ', I)
     print('SMU_volt = ', V)
     print('DMM_volt = ', L, '\n')
-    DMM_volt.append(L)
+    DMM_volts.append(L)
 
     
     time.sleep(2)
@@ -188,11 +190,13 @@ for i in currents:
 SMU.write('OUTP OFF')
 SMU.write('*RST')
 
-
-SMU_volts.insert(0,'SMU Volt (V)')
 SMU_currs.insert(0,'SMU Curr (A)')
-SMU_volts = np.array(SMU_volts)
+SMU_volts.insert(0,'SMU Volt (V)')
+DMM_volts.insert(0, 'DMM Volt (V)')
+
 SMU_currs = np.array(SMU_currs)
+SMU_volts = np.array(SMU_volts)
+DMM_volts = np.array(DMM_volts)
 
 
 data_dir = './data_CavLen_Temp/'
@@ -200,8 +204,8 @@ if not os.path.exists(data_dir):
     os.mkdir(data_dir)
 
 
-np.savetxt('./data_CavLen_Temp/IV_{}_{}.csv'.format(cav_length, temp), 
-           np.transpose(np.array([SMU_volts,SMU_currs])), fmt = '%s', delimiter = ',')
+np.savetxt('./data_CavLen_Temp/IVL_{}_{}.csv'.format(cav_length, temp), 
+           np.transpose(np.array([SMU_volts,SMU_currs, DMM_volts])), fmt = '%s', delimiter = ',')
 
 
 
