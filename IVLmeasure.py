@@ -158,8 +158,8 @@ SMU.write('SENS:REM ON') # sets to 4-wire mode (increases accuracy at low res/cu
 SMU.timeout = 100000 # sets waiting time to timeeout in ms
 DMM.timeout = 100000
 
-cav_length = args.cavlen # mm
-temp = args.temp # C
+CL = args.cavlen # mm
+T = args.temp # C
 
 minI = args.minI
 maxI = args.maxI
@@ -204,7 +204,7 @@ if not os.path.exists(data_dir):
     os.mkdir(data_dir)
 
 
-np.savetxt('./data_CavLen_Temp/IVL_{}_{}.csv'.format(cav_length, temp), 
+np.savetxt('./data_CavLen_Temp/IVL_{0:.2f}_{1:.2f}.csv'.format(CL, T), 
            np.transpose(np.array([SMU_volts,SMU_currs, DMM_volts])), fmt = '%s', delimiter = ',')
 
 
