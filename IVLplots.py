@@ -1,46 +1,55 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import time 
 import os
+import re
 from numpy import genfromtxt
-import argparse
-
-
-parser = argparse.ArgumentParser()
-parser.add_argument("-L", "--cavlen", type=float, help="Specify cavity length for data file (in mm)", required=True)
-parser.add_argument("-T", "--temp", type=float, help="Specify temperature for data file (in C)", required=True)
-args = parser.parse_args()
-
-CL = args.cavlen
-T = args.temp
-
-
-data_dir = './data_CavLen_Temp/'
-data_file = data_dir + 'IVL_{0:.2f}_{1:.2f}.csv'.format(CL, T)
-data = genfromtxt(data_file, delimiter = ',', skip_header = 1)
 
 plot_dir = './plots/'
 if not os.path.exists(plot_dir):
     os.mkdir(plot_dir)
 
+data_dir = './data_CavLen_Temp/'
 
-I = data[:,1]
-V = data[:,0]
-L = data[:,2]
+CL = []
+T = []
 
+I = []
+V = []
+L = []
+
+for name in os.listdir(data_dir):
+    if 'IVL_' in name:
+        params = re.findall("\d+\.\d+", name)
+        CL.append(float(params[0]))
+        T.append(float(params[1]))
+
+
+for i in range(len(CL)):
+    data_file = data_dir + 'IVL_{0:.2f}_{1:.2f}.csv'.format(CL[i], T[i])
+    data = genfromtxt(data_file, delimiter = ',', skip_header = 1)
+    I.append(data[:,1])
+    V.append(data[:,0])
+    L.append(data[:,2])
+    
 plt.rcParams["font.family"] = "Times New Roman"
 
 plt.figure('IV Curve')
-plt.plot(V, I, 'k.')
+for i in range(len(CL)):
+    plt.scatter(V[i], I[i], s = 1, color = 'C' + str(i), label = '{:.1f} mm, {:.2f} C'.format(CL[i],T[i]))
+# plt.plot(V, I, 'k.')
 plt.xlabel('Voltage (V)')
 plt.ylabel('Current (A)')
-plt.savefig(plot_dir + 'IV_{0:.2f}_{1:.2f}.pdf'.format(CL, T))
+plt.legend()
+plt.savefig(plot_dir + 'IVcurve.pdf')
 
 
 plt.figure()
-plt.plot(I, L, 'k.')
+for i in range(len(CL)):
+    plt.scatter(I[i], L[i], s = 1, color = 'C' + str(i), label = '{:.1f} mm, {:.2f} C'.format(CL[i],T[i]))
+# plt.plot(I, L, 'k.')
 plt.xlabel('Current (A)')
 plt.ylabel('Optical Power (V)')
-plt.savefig(plot_dir + 'IL_{0:.2f}_{1:.2f}.pdf'.format(CL, T))
+plt.legend()
+plt.savefig(plot_dir + 'ILcurve.pdf')
 
 plt.show()
