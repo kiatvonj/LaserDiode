@@ -15,7 +15,7 @@ def reprogram_experiment(SMU, DMM, count = 100, aper_time = 50, init_pulse_width
     DMM.write('SENS:VOLT:DC:RANG:UPP 5')
     
     DMM.write('TRIG:COUNT 3')
-    DMM.write('TRIG:DELAY 0.2')
+    DMM.write('TRIG:DELAY 0.05')
     DMM.write('TRIG:SOUR:IMM')
     
     # Reprogram SMU
@@ -93,17 +93,19 @@ def measure(SMU, DMM, pulse_amplitude, aper_time = 50):
     # if offtime > 0:
     #     time.sleep(offtime)
     
-    DMM.write('WAI')
-    DMM_volt = DMM.query('FETC?')
+    # DMM.write('WAI')
+    v = DMM.query('FETC?')
+    print('DMM volts: ',v)
+    v = v.split(',')
+    
     
 
 
     SMU_volt = float(s.split(',')[0])
     SMU_curr = float(s.split(',')[1])
-    print('DMM VOLTS: ', DMM_volt)
-    
-    # SMU.write('OUTP OFF')
-    return [SMU_volt, SMU_curr]
+    DMM_volt = (float(v[0]) + float(v[1]) + float(v[2])) / 3
+
+    return [SMU_volt, SMU_curr, DMM_volt]
 
 
 
@@ -115,11 +117,13 @@ parser.add_argument("--maxI", type=float, help="Set maximum current for sweep (i
 parser.add_argument("--dI", type=float, help="Set current increment for sweep (in A)", default=0.05)
 parser.add_argument("-L", "--cavlen", type=float, help="Specify cavity length for data file (in mm)", required=True)
 parser.add_argument("-T", "--temp", type=float, help="Specify temperature for data file (in C)", required=True)
+parser.add_argument("-s", "--submarine", action="store_false", help="Play submarine sound", default = True)
 args = parser.parse_args()
 
+if args.submarine == False:
+    if os.path.exists('C:\\Users\\sschons2\\Documents\\GitHub\\submarine.mp3'):
+        playsound('C:\\Users\\sschons2\\Documents\\GitHub\\submarine.mp3')
 
-if os.path.exists('C:\\Users\\sschons2\\Documents\\GitHub\\submarine.mp3'):
-    playsound('C:\\Users\\sschons2\\Documents\\GitHub\\submarine.mp3')
 
 
 rm = pyvisa.ResourceManager()
@@ -146,7 +150,7 @@ print(DMM.query('*IDN?'))            # this WOULD NOT work with the Fluke DMM, s
 print('\n')
 
 SMU.write('*RST')
-# DMM.write('*RST')
+DMM.write('*RST')
 
 SMU.write('SENS:REM ON') # sets to 4-wire mode (increases accuracy at low res/curr)
 SMU.timeout = 100000 # sets waiting time to timeeout in ms
@@ -162,18 +166,21 @@ dI = args.dI
 currents = np.arange(minI, maxI + dI, dI)
 SMU_volts = []
 SMU_currs = []
-# DMM_volt = []
+DMM_volt = []
 
 reprogram_experiment(SMU, DMM, args.count, args.apertime)
 
 
 for i in currents: 
-    V, I = measure(SMU, DMM, i, args.apertime)
+    V, I, L = measure(SMU, DMM, i, args.apertime)
     SMU_volts.append(V)
     SMU_currs.append(I)
     print('For curr: ', i)
     print('SMU_curr = ', I)
-    print('SMU_volt = ', V, '\n')
+    print('SMU_volt = ', V)
+    print('DMM_volt = ', L, '\n')
+    DMM_volt.append(L)
+
     
     time.sleep(2)
 
