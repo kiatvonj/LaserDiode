@@ -4,6 +4,7 @@ import pyvisa
 import time
 import os
 import argparse
+from playsound import playsound
 
 
 def reprogram_experiment(SMU, DMM, count = 100, aper_time = 50, init_pulse_width = 500): # pulsewidth > 160us, reptime > 
@@ -116,19 +117,26 @@ parser.add_argument("-L", "--cavlen", type=float, help="Specify cavity length fo
 parser.add_argument("-T", "--temp", type=float, help="Specify temperature for data file (in C)", required=True)
 args = parser.parse_args()
 
+
+if os.path.exists('C:\\Users\\sschons2\\Documents\\GitHub\\submarine.mp3'):
+    playsound('C:\\Users\\sschons2\\Documents\\GitHub\\submarine.mp3')
+
+
 rm = pyvisa.ResourceManager()
 print(rm.list_resources())
 
-name1, name2 = rm.list_resources()
 
-if 'MY' in name1:
-    SMU_name = name1
-    DMM_name = name2
-else:
-    SMU_name = name2
-    DMM_name = name1
+# name1, name2 = rm.list_resources()
 
+# if 'MY' in name1:
+#     SMU_name = name1
+#     DMM_name = name2
+# else:
+#     SMU_name = name2
+#     DMM_name = name1
 
+SMU_name = 'USB0::0x0957::0x8B18::MY51143520::0::INSTR'
+DMM_name = 'USB0::0x1AB1::0x0C94::DM3O151200124::0::INSTR'
 
 SMU = rm.open_resource(SMU_name)
 DMM = rm.open_resource(DMM_name)
