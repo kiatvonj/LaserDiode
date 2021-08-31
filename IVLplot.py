@@ -35,20 +35,25 @@ plt.rcParams["font.family"] = "Times New Roman"
 
 plt.figure('IV Curve')
 for i in range(len(CL)):
-    plt.scatter(V[i], I[i], s = 1, color = 'C' + str(i), label = '{:.1f} mm, {:.2f} C'.format(CL[i],T[i]))
-# plt.plot(V, I, 'k.')
+    plt.scatter(V[i], I[i], s = 3, color = 'C' + str(i))#, label = '{:.1f} mm, {:.2f} C'.format(CL[i],T[i]))
+    plt.plot(V[i], I[i], color = 'C' + str(i), label = '{:.1f} mm, {:.2f} C'.format(CL[i],T[i]))
 plt.xlabel('Voltage (V)')
 plt.ylabel('Current (A)')
+# plt.grid()
+plt.axvline(0, color = 'grey', alpha = 0.5)
+plt.axhline(0, color = 'grey', alpha = 0.5)
 plt.legend()
 plt.savefig(plot_dir + 'IVcurve.pdf')
 
 
 plt.figure()
 for i in range(len(CL)):
-    plt.scatter(I[i], L[i], s = 1, color = 'C' + str(i), label = '{:.1f} mm, {:.2f} C'.format(CL[i],T[i]))
-# plt.plot(I, L, 'k.')
+    plt.scatter(I[i], L[i], s = 3, color = 'C' + str(i), label = '{:.1f} mm, {:.2f} C'.format(CL[i],T[i]))
 plt.xlabel('Current (A)')
 plt.ylabel('Optical Power (V)')
+# plt.grid()
+plt.axvline(0, color = 'grey', alpha = 0.5)
+plt.axhline(0, color = 'grey', alpha = 0.5)
 plt.legend()
 plt.savefig(plot_dir + 'ILcurve.pdf')
 
