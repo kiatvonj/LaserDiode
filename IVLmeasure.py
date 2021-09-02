@@ -205,25 +205,9 @@ if not os.path.exists(data_dir):
 
 
 np.savetxt('./data_CavLen_Temp/IVL_{0:.2f}_{1:.2f}.csv'.format(CL, T), 
-           np.transpose(np.array([SMU_volts,SMU_currs, DMM_volts])), fmt = '%s', delimiter = ',')
+            np.transpose(np.array([SMU_volts,SMU_currs, DMM_volts])), fmt = '%s', delimiter = ',')
 
 
-
-
-
-def DMM_waitmeas(DMM,t):
-    DMM.write('CMDSET AGILENT')
-    DMM.write('SENS:FUNC:VOLT:DC')
-    DMM.write('CONF:VOLT:DC AUTO')
-    DMM.write('CALC:STAT ON')
-    DMM.write('CALC:FUNC AVER')
-    
-    time.sleep(t)
-    
-    max_volt = DMM.query('CALC:AVER:MAX?')
-    count = DMM.query('CALC:AVER:COUN?')
-    DMM.write('CALC:STAT OFF')
-    return [max_volt,count]
 
 
 

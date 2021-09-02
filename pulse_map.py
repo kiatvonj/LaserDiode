@@ -4,38 +4,35 @@ import pyvisa
 import time
 # import serial
 
-def reprogram_experiment(SMU, DMM, pulsewidth, reptime, risetime): # pulsewidth > 160us, reptime > 
+def reprogram_experiment(SMU, DMM, count = 100, aper_time = 50, init_pulse_width = 500): # pulsewidth > 160us, reptime > 
     # Reprogram DMM first
     DMM.write('CMDSET AGILENT')
     DMM.write('SENS:VOLT:DC:NPLC 10')
     DMM.write('SENS:VOLT:DC:RANG:AUTO 1')
     DMM.write('SENS:VOLT:DC:RANG:UPP 5')
     
-    DMM.write('TRIG:COUNT 1')
-    DMM.write('TRIG:DELAY 0')
+    DMM.write('TRIG:COUNT 3')
+    DMM.write('TRIG:DELAY 0.05')
     DMM.write('TRIG:SOUR:IMM')
     
     # Reprogram SMU
     SMU.write('SOUR:FUNC:MODE CURR')
     SMU.write('SOUR:CURR:LEV:IMM 0')
     SMU.write('SENS:VOLT:PROT:LEV 5')
-    
-    # risetime =  75 # us
-    mtime = pulsewidth - 2*risetime
-    # mtime = 50 
-    SMU.write('SENS:VOLT:DC:APER 100e-6')# + str(mtime) + 'e-6')
+
+    # Set initial conditions for trigger pulse
+    SMU.write('SENS:VOLT:DC:APER ' + str(aper_time) + 'e-6')
     
     SMU.write('SOUR:FUNC:SHAP PULS')
     SMU.write('SOUR:PULS:DEL 0')
-    SMU.write('SOUR:PULS:WIDTH ' + str(pulsewidth) + 'e-6')
+    SMU.write('SOUR:PULS:WIDTH ' + str(init_pulse_width) + 'e-6')
     SMU.write('SOUR:CURR:LEV:TRIG 1.0')
     
-    nevents = 2e6 // reptime # 2 seconds total divided by the reptime
-    SMU.write('TRIG:ALL:COUNT 100')# + str(nevents))
-    SMU.write('TRIG:ACQ:DEL 0')# + str(risetime) + 'e-6')
-    SMU.write('TRIG:ACQ:TIM 0')# + str(reptime) + 'e-6')
+    SMU.write('TRIG:ALL:COUNT ' + str(count))
+    SMU.write('TRIG:ACQ:DEL 0')
+    SMU.write('TRIG:ACQ:TIM 0')
     SMU.write('TRIG:TRAN:DEL 0')
-    SMU.write('TRIG:TRAN:TIM 0')# + str(reptime) + 'e-6')
+    SMU.write('TRIG:TRAN:TIM 0')
     return
 
 def SMU_dump(SMU):
@@ -45,40 +42,72 @@ def SMU_dump(SMU):
     SMU.write('TRAC:FEED:CONT NEXT')
     return
 
-def measure(SMU, DMM, pulse_amplitude, pulsewidth, reptime, acqHoldoff):
-    smuCurrentRampTime = 60 # us/A
+def measure(SMU, DMM, pulse_amplitude, DMM_acq_delay = 0.05, aper_time = 50):
     
-    SMU.write('OUTP ON')
-    
-    acqInitHoldoff = 210 # us
+    # set DMM trigger acquisition delay
+    DMM.write('TRIG:DELAY ' + str(DMM_acq_delay))
+
+    # Set peak currents for pulse amplitude
     SMU.write('SOUR:CURR:TRIG ' + str(pulse_amplitude))
     
-    # acqHoldoff = acqInitHoldoff + pulse_amplitude * smuCurrentRampTime
-    acqAper = pulsewidth - acqInitHoldoff - 2*pulse_amplitude * smuCurrentRampTime
+    # Hardcode pulse widths and acquisition delays based on peak current
+    pulse_width = 250 
+    acq_delay = 180
+    if pulse_amplitude > 1.5:
+        pulse_width = 350
+        acq_delay = 300
+    if pulse_amplitude > 1.55:
+        pulse_width = 400
+        acq_delay = 350
+    if pulse_amplitude > 1.75:
+        pulse_width = 500
+        acq_delay = 440
     
-    if acqAper < 50:
-        print('uh fix your aperture time, its less than 50 us!')
+    pulse_width = 500
+    acq_delay = 440
+    # print(pulse_width)
     
-    dutyCycle = (pulsewidth - pulse_amplitude * smuCurrentRampTime) / reptime
-    SMU.write('TRIG:ACQ:DEL ' + str(acqHoldoff) + 'e-6')
-    SMU.write('SENS:VOLT:DC:APER 50e-6') # + str(acqAper) + 'e-6')
+    # acq_delay = pulse_width - aper_time
+    # dutyCycle = (pulsewidth - pulse_amplitude * smuCurrentRampTime) / reptime # For I-L Curve
+
+    # Set pulse width, acquisition delay (measurement time), and aper time (integration window)
+    SMU.write('SOUR:PULS:WIDTH ' + str(pulse_width) + 'e-6')
+    SMU.write('TRIG:ACQ:DEL ' + str(acq_delay) + 'e-6')
+    SMU.write('SENS:VOLT:DC:APER ' + str(aper_time) + 'e-6')
     
+    # Initiate SMU
+    SMU.write('OUTP ON')
     SMU_dump(SMU)
-    
     SMU.write('INIT:ALL')
     
-    # DMM.write('INIT:IMM')
-    # DMM.write('*WAI')
-    # DMM_volt = DMM.query('*FETC?')
+    # tau0 = time.time()
     
+    # Initiate Multimeter
+    DMM.write('INIT')
+    
+    # Read SMU measurements
     SMU.write('*WAI')
-    s =SMU.query('TRAC:STAT:DATA?')
+    s = SMU.query('TRAC:STAT:DATA?')
+    
+    # Check time of SMU measurement and wait if measurment took < 2s
+    # tpassed = time.time()-tau0
+    # offtime = 2 - tpassed
+    # if offtime > 0:
+    #     time.sleep(offtime)
+    
+    # DMM.write('WAI')
+    v = DMM.query('FETC?')
+    print('DMM volts: ',v)
+    v = v.split(',')
+    
+    
+
 
     SMU_volt = float(s.split(',')[0])
     SMU_curr = float(s.split(',')[1])
-    
-    SMU.write('OUTP OFF')
-    return [SMU_volt, SMU_curr]
+    DMM_volt = float(v[0]) # (float(v[0]) + float(v[1]) + float(v[2])) / 3
+
+    return [SMU_volt, SMU_curr, DMM_volt]
 
 
 def pulse_map(trig_time,pulse_width,acq_delay, curr_peak):
@@ -147,20 +176,25 @@ def pulse_map(trig_time,pulse_width,acq_delay, curr_peak):
 
     return (voltage,current,DMM_voltage)
 
+def DMM_delay_map():
+    return
+
 
 
 rm = pyvisa.ResourceManager()
 print(rm.list_resources())
 
-name1, name2 = rm.list_resources()
+# name1, name2 = rm.list_resources()
 
-if 'MY' in name1:
-    SMU_name = name1
-    DMM_name = name2
-else:
-    SMU_name = name2
-    DMM_name = name1
+# if 'MY' in name1:
+#     SMU_name = name1
+#     DMM_name = name2
+# else:
+#     SMU_name = name2
+#     DMM_name = name1
 
+SMU_name = 'USB0::0x0957::0x8B18::MY51143520::0::INSTR'
+DMM_name = 'USB0::0x1AB1::0x0C94::DM3O151200124::0::INSTR'
 
 SMU = rm.open_resource(SMU_name)
 DMM = rm.open_resource(DMM_name)
@@ -170,6 +204,7 @@ print(DMM.query('*IDN?'))            # this WOULD NOT work with the Fluke DMM, s
 print('\n')
 
 SMU.write('*RST')
+DMM.write('*RST')
 
 
 # currents = np.linspace(0,0.05,10)
@@ -201,23 +236,23 @@ DMM.timeout = 100000
 
 
 
-reptime = 2000
-curr_peak = 1.75
+# reptime = 2000
+# curr_peak = 1.75
 
-pulse_width = 400 # us
+# pulse_width = 400 # us
 
-acq_delays = np.arange(200, 350, 2.5)
+# acq_delays = np.arange(200, 350, 2.5)
 
-volts = []
-currs = []
-DMM_volts = []
+# volts = []
+# currs = []
+# DMM_volts = []
 
-for i in acq_delays:
-    reprogram_experiment(SMU, DMM, pulse_width, reptime, i )
-    V, I = measure(SMU, DMM, curr_peak, pulse_width, reptime, i)
-    volts.append(V)
-    currs.append(I)
-    time.sleep(0.1)
+# for i in acq_delays:
+#     reprogram_experiment(SMU, DMM, pulse_width, reptime, i )
+#     V, I = measure(SMU, DMM, curr_peak, pulse_width, reptime, i)
+#     volts.append(V)
+#     currs.append(I)
+#     time.sleep(0.1)
 
 
 # for i in acq_delays:
@@ -231,50 +266,50 @@ for i in acq_delays:
 SMU.write('OUTP OFF')
 SMU.write('*RST')
     
-volts = np.array(volts)
-currs = np.array(currs)
-# print(volts[:,0])
+# volts = np.array(volts)
+# currs = np.array(currs)
+# # print(volts[:,0])
 
 
-plt.figure()
-plt.plot(acq_delays, volts, 'k.')
-# plt.plot(acq_delays,volts[:,0],'k.')
-# plt.plot(acq_delays,volts[:,1], 'r.')
-# plt.plot(acq_delays,volts[:,2])
-# plt.plot(acq_delays,volts[:,3])
-# plt.plot(acq_delays,volts[:,4])
-# plt.plot(acq_delays,volts[:,5])
-# plt.plot(acq_delays,volts[:,6])
-# plt.plot(acq_delays,volts[:,7])
-# plt.plot(acq_delays,volts[:,8])
-# plt.plot(acq_delays,volts[:,9])
-plt.xlabel('Time (s)')
-plt.ylabel('SMU Voltage')
+# plt.figure()
+# plt.plot(acq_delays, volts, 'k.')
+# # plt.plot(acq_delays,volts[:,0],'k.')
+# # plt.plot(acq_delays,volts[:,1], 'r.')
+# # plt.plot(acq_delays,volts[:,2])
+# # plt.plot(acq_delays,volts[:,3])
+# # plt.plot(acq_delays,volts[:,4])
+# # plt.plot(acq_delays,volts[:,5])
+# # plt.plot(acq_delays,volts[:,6])
+# # plt.plot(acq_delays,volts[:,7])
+# # plt.plot(acq_delays,volts[:,8])
+# # plt.plot(acq_delays,volts[:,9])
+# plt.xlabel('Time (s)')
+# plt.ylabel('SMU Voltage')
 
 
-plt.figure()
-plt.plot(acq_delays,currs,'k.')
-# plt.plot(acq_delays,currs[:,0],'k.')
-# plt.plot(acq_delays,currs[:,1], 'r.')
-# plt.plot(acq_delays,currs[:,2])
-# plt.plot(acq_delays,currs[:,3])
-# plt.plot(acq_delays,currs[:,4])
-# plt.plot(acq_delays,currs[:,5])
-# plt.plot(acq_delays,currs[:,6])
-# plt.plot(acq_delays,currs[:,7])
-# plt.plot(acq_delays,currs[:,8])
-# plt.plot(acq_delays,currs[:,9])
-plt.xlabel('Time (s)')
-plt.ylabel('SMU Current')
-# plt.ylim(0, 1.5*curr_peak)
-# plt.savefig('../PulseMapsTesting/PW_{0:.1e}_TL_{1:.1e}_CP_{2:.1e}.png'.format(pulse_width, trigger_length, curr_peak))
+# plt.figure()
+# plt.plot(acq_delays,currs,'k.')
+# # plt.plot(acq_delays,currs[:,0],'k.')
+# # plt.plot(acq_delays,currs[:,1], 'r.')
+# # plt.plot(acq_delays,currs[:,2])
+# # plt.plot(acq_delays,currs[:,3])
+# # plt.plot(acq_delays,currs[:,4])
+# # plt.plot(acq_delays,currs[:,5])
+# # plt.plot(acq_delays,currs[:,6])
+# # plt.plot(acq_delays,currs[:,7])
+# # plt.plot(acq_delays,currs[:,8])
+# # plt.plot(acq_delays,currs[:,9])
+# plt.xlabel('Time (s)')
+# plt.ylabel('SMU Current')
+# # plt.ylim(0, 1.5*curr_peak)
+# # plt.savefig('../PulseMapsTesting/PW_{0:.1e}_TL_{1:.1e}_CP_{2:.1e}.png'.format(pulse_width, trigger_length, curr_peak))
 
 
 
-plt.figure()
-plt.plot(acq_delays,DMM_volts)
-plt.ylabel('DMM Voltage')
-plt.xlabel('Acquisition Times')
+# plt.figure()
+# plt.plot(acq_delays,DMM_volts)
+# plt.ylabel('DMM Voltage')
+# plt.xlabel('Acquisition Times')
 
 
 
