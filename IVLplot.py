@@ -35,10 +35,10 @@ L = []
 
 # Fill in appropriate Cl and T based on name of data file
 for name in os.listdir(data_dir):
-    if 'IVL_' in name:
+    if 'IVL_' in name and 'old' not in name:
         params = re.findall("\d+\.\d+", name)
-        CL.append(float(params[0]))
-        T.append(float(params[1]))
+        CL.append(round(float(params[0]), 2))
+        T.append(round(float(params[1]), 2))
 
 # Fill I, V, L data
 for i in range(len(CL)):
@@ -115,7 +115,7 @@ plt.xlabel('Current (A)')
 plt.ylabel('Optical Power (V)')
 plt.axvline(0, color = 'grey', alpha = 0.5)
 plt.axhline(0, color = 'grey', alpha = 0.5)
-plt.xlim(1,2)
+# plt.xlim(1,2)
 plt.ylim(0)
 plt.legend(loc = 2)
 plt.savefig(plot_dir + 'ILcurve.pdf')

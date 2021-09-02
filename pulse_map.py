@@ -4,7 +4,7 @@ import pyvisa
 import time
 # import serial
 
-def reprogram_experiment(SMU, DMM, count = 100, aper_time = 50, init_pulse_width = 500): # pulsewidth > 160us, reptime > 
+def reprogram_experiment(SMU, DMM, count = 1000, aper_time = 50, init_pulse_width = 500): # pulsewidth > 160us, reptime > 
     # Reprogram DMM first
     DMM.write('CMDSET AGILENT')
     DMM.write('SENS:VOLT:DC:NPLC 10')
@@ -12,7 +12,7 @@ def reprogram_experiment(SMU, DMM, count = 100, aper_time = 50, init_pulse_width
     DMM.write('SENS:VOLT:DC:RANG:UPP 5')
     
     DMM.write('TRIG:COUNT 3')
-    DMM.write('TRIG:DELAY 0.05')
+    DMM.write('TRIG:DELAY 0')
     DMM.write('TRIG:SOUR:IMM')
     
     # Reprogram SMU
@@ -45,7 +45,8 @@ def SMU_dump(SMU):
 def measure(SMU, DMM, pulse_amplitude, DMM_acq_delay = 0.05, aper_time = 50):
     
     # set DMM trigger acquisition delay
-    DMM.write('TRIG:DELAY ' + str(DMM_acq_delay))
+    DMM.write('TRIG:DELAY 0.05')
+    DMM.write('SENS:VOLT:DC:APER 1e-3') # + str(DMM_acq_delay))
 
     # Set peak currents for pulse amplitude
     SMU.write('SOUR:CURR:TRIG ' + str(pulse_amplitude))
@@ -83,7 +84,7 @@ def measure(SMU, DMM, pulse_amplitude, DMM_acq_delay = 0.05, aper_time = 50):
     # tau0 = time.time()
     
     # Initiate Multimeter
-    DMM.write('INIT')
+    DMM.write('INIT:IMM')
     
     # Read SMU measurements
     SMU.write('*WAI')
@@ -105,9 +106,11 @@ def measure(SMU, DMM, pulse_amplitude, DMM_acq_delay = 0.05, aper_time = 50):
 
     SMU_volt = float(s.split(',')[0])
     SMU_curr = float(s.split(',')[1])
-    DMM_volt = float(v[0]) # (float(v[0]) + float(v[1]) + float(v[2])) / 3
+    DMM_volt0 = float(v[0]) # (float(v[0]) + float(v[1]) + float(v[2])) / 3
+    DMM_volt1 = float(v[1]) # (float(v[0]) + float(v[1]) + float(v[2])) / 3
+    DMM_volt2 = float(v[2]) # (float(v[0]) + float(v[1]) + float(v[2])) / 3
 
-    return [SMU_volt, SMU_curr, DMM_volt]
+    return [SMU_volt, SMU_curr, DMM_volt0, DMM_volt1, DMM_volt2]
 
 
 def pulse_map(trig_time,pulse_width,acq_delay, curr_peak):
@@ -176,8 +179,8 @@ def pulse_map(trig_time,pulse_width,acq_delay, curr_peak):
 
     return (voltage,current,DMM_voltage)
 
-def DMM_delay_map():
-    return
+# def DMM_delay_map():
+#     return
 
 
 
@@ -237,22 +240,24 @@ DMM.timeout = 100000
 
 
 # reptime = 2000
-# curr_peak = 1.75
+curr_peak = 0.5
 
 # pulse_width = 400 # us
 
-# acq_delays = np.arange(200, 350, 2.5)
+DMM_acq_delays = np.arange(0.005, 0.06, 0.0025)
 
-# volts = []
-# currs = []
+volts = []
+currs = []
+Ls = []
 # DMM_volts = []
 
-# for i in acq_delays:
-#     reprogram_experiment(SMU, DMM, pulse_width, reptime, i )
-#     V, I = measure(SMU, DMM, curr_peak, pulse_width, reptime, i)
-#     volts.append(V)
-#     currs.append(I)
-#     time.sleep(0.1)
+reprogram_experiment(SMU, DMM)
+for i in DMM_acq_delays:
+    V, I, L0, L1, L2 = measure(SMU, DMM, curr_peak, i)
+    volts.append(V)
+    currs.append(I)
+    Ls.append([L0, L1, L2])
+    time.sleep(1)
 
 
 # for i in acq_delays:
@@ -265,7 +270,19 @@ DMM.timeout = 100000
     
 SMU.write('OUTP OFF')
 SMU.write('*RST')
-    
+
+Ls = np.array(Ls)    
+
+
+plt.figure()
+plt.plot(DMM_acq_delays, Ls[:, 0], 'k.')
+plt.plot(DMM_acq_delays, Ls[:, 1], 'b.')
+plt.plot(DMM_acq_delays, Ls[:, 2], 'r.')
+plt.xlabel('Time (s)')
+plt.ylabel('Optical Power')
+plt.show()
+
+
 # volts = np.array(volts)
 # currs = np.array(currs)
 # # print(volts[:,0])
