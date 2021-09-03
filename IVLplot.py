@@ -200,6 +200,7 @@ alpha = np.array([slope_15*ni[0]*np.log(1/R), slope_30*ni[1]*np.log(1/R)])
 for i in range(len(CL)):
     print('\n For CL = {:.1f} mm, T = {:.2f} C \n'.format(CL[i], T[i]))
     print('Threshold Curr: Ith = {} A'.format(-int_V[i]/slope_V[i]))
+    print('{:<10s}{:>4s}{:^2s}{:<}')
     print('Diff. Quant. Eff: nd = {}'.format(nd[i]))
     print('Injection Eff: ni = {}'.format(ni[i%2]))
     print('Net Internal Optical Loss: alpha = {}'.format(alpha[i%2]))
