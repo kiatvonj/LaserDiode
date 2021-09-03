@@ -16,8 +16,8 @@ def find_nearest(array, value): # returns an index nearest to specified value in
 
 
 def read_spectrum_data(filename):
-    wavelength = np.loadtxt(filename,dtype=float,delimiter=',',skiprows=33,usecols=0,max_rows=3648)
-    intensity = np.loadtxt(filename,dtype=float,delimiter=',',skiprows=33,usecols=1,max_rows=3648)
+    wavelength = np.loadtxt(filename,dtype=float,delimiter=',',skiprows=33,usecols=0,max_rows=3645)
+    intensity = np.loadtxt(filename,dtype=float,delimiter=',',skiprows=33,usecols=1,max_rows=3645)
     return [wavelength,intensity]
 
 # def smooth_check(filename):
