@@ -169,9 +169,6 @@ for i in range(len(T)):
 
 nd_15 = np.array(nd_15)
 nd_30 = np.array(nd_30)
-print(CL_uniq)
-print(nd_15)
-
 
 plt.figure()
 plt.scatter(CL_uniq, 1/nd_15, s = 10, color = 'C0') 
@@ -190,6 +187,7 @@ plt.ylabel(r'(Diff. Quantum Efficiency)$^{-1}$, $\eta_d^{-1}$')
 plt.legend()
 plt.xlim(0, 3.5)
 plt.ylim(0)
+plt.savefig(plot_dir + 'DiffQuantEff.pdf')
 
 ni = np.array([1/intercept_15, 1/intercept_30])
 
@@ -198,11 +196,12 @@ alpha = np.array([slope_15*ni[0]*np.log(1/R), slope_30*ni[1]*np.log(1/R)])
 
 
 for i in range(len(CL)):
-    print('\n For CL = {:.1f} mm, T = {:.2f} C \n'.format(CL[i], T[i]))
-    print('Threshold Curr: Ith = {} A'.format(-int_V[i]/slope_V[i]))
-    print('{:<10s}{:>4s}{:^2s}{:<}')
-    print('Diff. Quant. Eff: nd = {}'.format(nd[i]))
-    print('Injection Eff: ni = {}'.format(ni[i%2]))
-    print('Net Internal Optical Loss: alpha = {}'.format(alpha[i%2]))
+    print('\n For CL = {:.1f} mm, T = {:.2f} C'.format(CL[i], T[i]))
+    print('--------------------------------------------------------')
+    print('{:<20s}{:>5s}{:^3s}{:<1f} A'.format('Thresholf Curr: ', 'Ith', '=', -int_V[i]/slope_V[i]))
+    print('{:<20s}{:>5s}{:^3s}{:<1f} '.format('Diff Quant Eff: ', 'nd', '=', nd[i]))
+    print('{:<20s}{:>5s}{:^3s}{:<1f} '.format('Injection Eff: ', 'ni', '=', ni[i%2]))
+    print('{:<20s}{:>5s}{:^3s}{:<1f} '.format('Net Int Opt Loss: ', 'alpha', '=', alpha[i%2]))
+    print('========================================================')
 
 plt.show()
