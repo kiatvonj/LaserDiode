@@ -75,8 +75,10 @@ def plot_spectra(filename, scale_factor = 1):
     
     FWHM = lamdas[-idx2] - lamdas[idx1]
     
+    print('For '+label+':')
     print('FWHM:',round(FWHM,2))
     print('Peak at',round(lamda_peak,2))
+    print('\n')
     # plt.title('FWHM:',FWHM)
     plt.rcParams["font.family"] = "Times New Roman"
     plt.xlabel('Wavelength (nm)')
@@ -90,25 +92,37 @@ def plot_spectra(filename, scale_factor = 1):
 # FWHMs = []
 # for i in os.listdir('data_spectra'):
 #     FWM = plot_spectra('data_spectra/'+i)
+plot_directory = 'plots/'
 
 file_list = os.listdir('data_spectra')
 file_list.sort()
 
+for i in file_list:
+    if i == '.DS_Store':
+        file_list.remove(i)
+
 plt.figure()
 for i in range(len(file_list[:3])):
     plot_spectra('data_spectra/'+file_list[i],i+1)
+    plt.savefig(plot_directory+'Spectra_2.00_15.00.pdf')
     
 plt.figure()
 for i in range(len(file_list[3:6])):
     plot_spectra('data_spectra/'+file_list[i+3],i+1)
+    plt.savefig(plot_directory+'Spectra_2.00_30.00.pdf')
+
 
 plt.figure()
 for i in range(len(file_list[6:9])):
     plot_spectra('data_spectra/'+file_list[i+6],i+1)
+    plt.savefig(plot_directory+'Spectra_3.00_15.00.pdf')
+
     
 plt.figure()
 for i in range(len(file_list[9:12])):
     plot_spectra('data_spectra/'+file_list[i+9],i+1)
+    plt.savefig(plot_directory+'Spectra_3.00_30.00.pdf')
+
 # FIXME find a way to add an option to smooth spectra. Maybe iterate through each in
 #       the directory and prompt the user (Does this need smoothing? (Y/N) )
 
