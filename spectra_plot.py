@@ -20,29 +20,27 @@ def read_spectrum_data(filename):
     intensity = np.loadtxt(filename,dtype=float,delimiter=',',skiprows=33,usecols=1,max_rows=3645)
     return [wavelength,intensity]
 
-# def smooth_check(filename):
-#     lamdas, intens = read_spectrum_data(filename)
-#     plt.plot(lamdas,intens/max(intens))
-#     plt.xlim(760,840)
-#     plt.show(block=True)
+def smooth(lamdas,intens,smooth_check):
+    # lamdas, intens = read_spectrum_data(filename)
+    # plt.plot(lamdas,intens/max(intens))
+    # plt.xlim(760,840)
+    # plt.show(block=True)
     
-#     smooth_check = input('Does this spectrum look like it needs smoothing? (Y/N)\n')
-#     # FIXME: find a way to loop through the smoothing multiple times until the user is satisfied
-#     if smooth_check == 'Y':
-#         new_lamdas = [] # blue spectrum was very noisy in a spiky way, so I'm averaging every
-#                  #  two points
-#         new_intens = []
-#         for i in range(len(lamdas)//3):
-#             wl_foo = (lamdas[3*i]+lamdas[3*i+1]+lamdas[3*i+2])/3
-#             new_lamdas.append(wl_foo)
-#             val_foo = (intens[3*i]+intens[3*i+1]+intens[3*i+2])/3
-#             new_intens.append(val_foo)
-#         return [np.array(new_lamdas), np.array(new_intens)]
-#     elif smooth_check == 'N':
-#         return [lamdas,intens]
-#     else:
-#         print('Bad user, enter Y or N')
-#         return
+    # smooth_check = input('Does this spectrum look like it needs smoothing? (Y/N)\n')
+    # FIXME: find a way to loop through the smoothing multiple times until the user is satisfied
+    if smooth_check == 'Y':
+        new_lamdas = [] # blue spectrum was very noisy in a spiky way, so I'm averaging every
+                  #  two points
+        new_intens = []
+        for i in range(len(lamdas)//3):
+            wl_foo = (lamdas[3*i]+lamdas[3*i+1]+lamdas[3*i+2])/3
+            new_lamdas.append(wl_foo)
+            val_foo = (intens[3*i]+intens[3*i+1]+intens[3*i+2])/3
+            new_intens.append(val_foo)
+        return [np.array(new_lamdas), np.array(new_intens)]
+    elif smooth_check == 'N':
+        return [lamdas,intens]
+
 
 def plot_spectra(filename, scale_factor = 1):   
     lamdas, intens = read_spectrum_data(filename)
@@ -80,7 +78,7 @@ def plot_spectra(filename, scale_factor = 1):
     print('Peak at',round(lamda_peak,2))
     print('\n')
     # plt.title('FWHM:',FWHM)
-    plt.rcParams["font.family"] = "Times New Roman"
+    
     plt.xlabel('Wavelength (nm)')
     plt.ylabel('Intensity (a.u.)')
     plt.xlim(760,840)
@@ -88,6 +86,8 @@ def plot_spectra(filename, scale_factor = 1):
     plt.yticks(ticks = [])
     plt.legend()
     return FWHM
+
+plt.rcParams["font.family"] = "Times New Roman"
 
 # FWHMs = []
 # for i in os.listdir('data_spectra'):
@@ -125,4 +125,39 @@ for i in range(len(file_list[9:12])):
 
 # FIXME find a way to add an option to smooth spectra. Maybe iterate through each in
 #       the directory and prompt the user (Does this need smoothing? (Y/N) )
+
+
+
+# make a nice-looking plot to highlight linewidth differences as current increases
+#   offset the center of each spectrum
+
+plt.figure()
+
+lamdas, below_thresh = read_spectrum_data('data_spectra/'+file_list[9])
+at_thresh = read_spectrum_data('data_spectra/'+file_list[10])[1]
+above_thresh = read_spectrum_data('data_spectra/'+file_list[11])[1]
+
+below_lamdas, below_thresh = smooth(lamdas,below_thresh,'Y')
+# below_lamdas, below_thresh = smooth(below_lamdas,below_thresh,'Y')
+
+plt.plot(below_lamdas-40,below_thresh/max(below_thresh)*1)
+plt.plot(lamdas,at_thresh/max(at_thresh)*1.5)
+plt.plot(lamdas+40,above_thresh/max(above_thresh)*2)
+plt.yticks(ticks = [])
+plt.xticks(ticks = [])
+plt.ylabel('Intensity (a.u.)')
+plt.xlabel('Wavelength (shifted a.u.)')
+plt.xlim(700,900)
+plt.ylim(0,2.1)
+plt.savefig(plot_directory+'Example_Spectra.pdf')
+
+
+
+
+
+
+
+
+
+
 
