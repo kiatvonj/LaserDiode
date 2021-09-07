@@ -129,7 +129,7 @@ for i in V_DMM:
 
 
 # finding slope efficiencies for each
-start_idx = [170,194,152,162] # index where lasing starts
+start_idx = [170,194,144,162] # index where lasing starts
 
 slope_efficiencies = []
 efficiency_intercepts = []
@@ -152,7 +152,8 @@ I_thresh = -efficiency_intercepts/slope_efficiencies
 plt.figure()
 plt.xlabel('Current Through LD (A)')
 plt.ylabel('Power Out of LD into Integrating Sphere (W)')
-plt.xlim(1.25,2.1)
+plt.xlim(1.25,2.05)
+plt.ylim(0,0.22)
 print('\nThreshold Currents:')
 for i in range(len(file_list)):
     plt.plot(I_SMU[i],Pout[i],dots[i],label=labels[i],alpha=0.3)
