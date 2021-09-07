@@ -153,10 +153,12 @@ plt.figure()
 plt.xlabel('Current Through LD (A)')
 plt.ylabel('Power Out of LD into Integrating Sphere (W)')
 plt.xlim(1.25,2.1)
-for i in range(4):
+print('\nThreshold Currents:')
+for i in range(len(file_list)):
     plt.plot(I_SMU[i],Pout[i],dots[i],label=labels[i],alpha=0.3)
     Is = np.linspace(I_thresh[i],2.1,1000)
     plt.plot(Is, Is*slope_efficiencies[i] + efficiency_intercepts[i],lines[i])
+    print(labels[i]+':',round(I_thresh[i],2))
 plt.legend()
 
 # using slope efficiencies to find differential quantum efficiency
@@ -167,7 +169,7 @@ nu = 3e8 / 800e-9 # frequency of radiation (Hz)
 eta_d = ( q/(h*nu) ) * slope_efficiencies # differential quantum efficiency
 
 print('\nDifferential Quantum Efficiencies:')
-for i in range(4):
+for i in range(len(file_list)):
     print(labels[i]+':',round(eta_d[i],4))
     
 
