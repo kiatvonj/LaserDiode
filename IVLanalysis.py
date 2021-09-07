@@ -26,9 +26,13 @@ def num_derivative(x,y):
         dydx.append(dy/dx)
     return dydx
 
+
+
 file_list = os.listdir('data_CavLen_Temp')
 for i in file_list:
     if i == '.DS_Store':
+        file_list.remove(i)
+    if '100.00' in i:
         file_list.remove(i)
 
 file_list.sort()
@@ -119,12 +123,16 @@ plt.legend()
 responsivity = 0.5 # A/W
 R_load = 10000 # ohms
 
-Pout = [] # power output by LD into integrating sphere (might only be 1/2 the true Pout)
+M = 13.45
+A_sphere = 4*np.pi*25.4**2
+A_port = np.pi*1.5**2
+
+Pin = [] # power output by LD into integrating sphere (might only be 1/2 the true Pout)
 for i in V_DMM:
     P_detector = i/(responsivity*R_load)
-    P_out = 2 * (8107.23/13) * P_detector #factor of 2 assuming the back side of the LD
+    P_in = 2 * (A_sphere/(A_port * M)) * P_detector #factor of 2 assuming the back side of the LD
     # isn't coated, second factor is SA of sphere/SA of detector
-    Pout.append(P_out)
+    Pin.append(P_in)
 
 
 
@@ -135,8 +143,7 @@ slope_efficiencies = []
 efficiency_intercepts = []
 print('Slope Efficiencies:')
 for i in range(len(file_list)):
-    slope_efficiency, intercept = np.polyfit(I_SMU[i][start_idx[i]:],
-                                             Pout[i][start_idx[i]:],deg=1)
+    slope_efficiency, intercept = np.polyfit(I_SMU[i][start_idx[i]:],Pin[i][start_idx[i]:],deg=1)
     slope_efficiencies.append(slope_efficiency)
     efficiency_intercepts.append(intercept)
     print(labels[i] + ':',round(slope_efficiency,4))
@@ -153,10 +160,10 @@ plt.figure()
 plt.xlabel('Current Through LD (A)')
 plt.ylabel('Power Out of LD into Integrating Sphere (W)')
 plt.xlim(1.25,2.05)
-plt.ylim(0,0.22)
+plt.ylim(0,0.032)
 print('\nThreshold Currents:')
 for i in range(len(file_list)):
-    plt.plot(I_SMU[i],Pout[i],dots[i],label=labels[i],alpha=0.3)
+    plt.plot(I_SMU[i],Pin[i],dots[i],label=labels[i],alpha=0.3)
     Is = np.linspace(I_thresh[i],2.1,1000)
     plt.plot(Is, Is*slope_efficiencies[i] + efficiency_intercepts[i],lines[i])
     print(labels[i]+':',round(I_thresh[i],2))
@@ -176,7 +183,7 @@ for i in range(len(file_list)):
 
 # using eta_d and L, find injection efficiency and internal optical loss (for a given temp)
 #   For T=15°C: make fit y=mx + b
-inv_eta_d_15 = 1/eta_d[:2] # units?
+inv_eta_d_15 = np.array([1/eta_d[0],1/eta_d[2]]) # units?
 L = np.array([2e-3,3e-3]) # m
 m,b = np.polyfit(L,inv_eta_d_15,deg=1)
 
@@ -188,7 +195,7 @@ print('Injection Efficiency =',round(eta_i_15,4))
 print('Net Internal Optical Loss =',round(alpha_i_15,4))
 
 #   For T=30°C: make fit y=nx + c
-inv_eta_d_30 = 1/eta_d[2:]
+inv_eta_d_30 = np.array([1/eta_d[1],1/eta_d[3]])
 n,c = np.polyfit(L,inv_eta_d_30,deg=1)
 
 eta_i_30 = 1/c
