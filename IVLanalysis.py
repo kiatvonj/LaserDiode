@@ -8,6 +8,7 @@ project
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 # photodiode: Thorlabs SM05PD1B
 
@@ -16,6 +17,14 @@ def data_readin(file):
     I = np.loadtxt(file,dtype=float,skiprows=1,usecols=1,delimiter=',') # current through LD
     V_PD = np.loadtxt(file,dtype=float,skiprows=1,usecols=2,delimiter=',') # voltage out of PD
     return [V,I,V_PD]
+
+def num_derivative(x,y):
+    dydx = []
+    for i in range(len(y)-1):
+        dy = y[i+1] - y[i]
+        dx = x[i+1] - x[i]
+        dydx.append(dy/dx)
+    return dydx
 
 file_list = os.listdir('data_CavLen_Temp')
 for i in file_list:
@@ -37,23 +46,63 @@ for i in file_list:
 
 dots = ['k.','b.','r.','g.']
 lines = ['k--','b--','r--','g--']
+solid_lines = ['k-','b-','r-','g-']
 labels = ['2mm, 15°C','2mm, 30°C','3mm, 15°C','3mm, 30°C']
 
 
 
 # making basic IV and IL plots
-plt.figure()
-plt.xlabel('Voltage Across LD (V)')
-plt.ylabel('Current Through LD (I)')
-for i in range(len(file_list)):
-    plt.plot(V_SMU[i],I_SMU[i],dots[i],label=labels[i])
-plt.legend()
+# plt.figure()
+# plt.xlabel('Voltage Across LD (V)')
+# plt.ylabel('Current Through LD (I)')
+# for i in range(len(file_list)):
+#     plt.plot(V_SMU[i],I_SMU[i],dots[i],label=labels[i])
+# plt.legend()
+
+fig, ax1 = plt.subplots()
+ax2 = fig.add_axes([.375,.3,.3,.55])
+ax1.set_xlim(0,1.75)
+ax1.set_ylim(0,2.1)
+ax2.set_xlim(1.3,1.6)
+ax2.set_ylim(0,1.2)
+ax1.set_xlabel('Voltage Across LD (V)')
+ax1.set_ylabel('Injection Current (A)')
+for i in range(4):
+    ax1.plot(V_SMU[i],I_SMU[i],solid_lines[i],label=labels[i])
+    ax2.plot(V_SMU[i],I_SMU[i],solid_lines[i])
+
+
+rectangle = patches.Rectangle((1.3, 0), .3, 1.2, linewidth=1, edgecolor='gray',
+                              facecolor='none')
+ax1.add_patch(rectangle)
+ax1.legend()
 
 plt.figure()
 plt.xlabel('Current Through LD (I)')
 plt.ylabel('Voltage Out of PD (V)')
 for i in range(len(file_list)):
     plt.plot(I_SMU[i],V_DMM[i],dots[i],label=labels[i])
+plt.legend()
+
+
+
+# making a plot of dynamic series resistance
+#   from what I found online, this is defined as dV/dI where I is the injection
+#   current and V is the resultant voltage across the diode
+R_series = []
+
+fig, ax1 = plt.subplots()
+ax2 = ax1.twinx()
+ax1.set_xlabel('Injection Current (A)')
+ax1.set_ylabel('Voltage Across LD (V)')
+ax2.set_ylabel('Series Resistance (Ω)')
+ax1.set_ylim(0,2.6)
+ax2.set_ylim(0,2.6)
+for i in range(len(file_list)):
+    dVdI = num_derivative(I_SMU[i], V_SMU[i])
+    R_series.append(dVdI)
+    ax1.plot(I_SMU[i],V_SMU[i],lines[i])
+    ax2.plot(I_SMU[i][2:],dVdI[1:],solid_lines[i],label=labels[i])
 plt.legend()
 
 
