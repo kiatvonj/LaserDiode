@@ -26,6 +26,9 @@ def num_derivative(x,y):
         dydx.append(dy/dx)
     return dydx
 
+plot_dir = './plots/'
+if not os.path.exists(plot_dir):
+    os.mkdir(plot_dir)
 
 
 file_list = os.listdir('data_CavLen_Temp')
@@ -51,7 +54,7 @@ for i in file_list:
 dots = ['k.','b.','r.','g.']
 lines = ['k--','b--','r--','g--']
 solid_lines = ['k-','b-','r-','g-']
-labels = ['2mm, 15°C','2mm, 30°C','3mm, 15°C','3mm, 30°C']
+labels = ['2 mm, 15°C','2 mm, 30°C','3 mm, 15°C','3 mm, 30°C']
 
 
 
@@ -62,6 +65,8 @@ labels = ['2mm, 15°C','2mm, 30°C','3mm, 15°C','3mm, 30°C']
 # for i in range(len(file_list)):
 #     plt.plot(V_SMU[i],I_SMU[i],dots[i],label=labels[i])
 # plt.legend()
+
+plt.rcParams["font.family"] = "Times New Roman"
 
 fig, ax1 = plt.subplots()
 ax2 = fig.add_axes([.375,.3,.3,.55])
@@ -82,12 +87,13 @@ ax1.add_patch(rectangle)
 ax1.legend()
 
 plt.figure()
-plt.xlabel('Current Through LD (I)')
+plt.xlabel('Current Through LD (A)')
 plt.ylabel('Voltage Out of PD (V)')
 for i in range(len(file_list)):
     plt.plot(I_SMU[i],V_DMM[i],dots[i],label=labels[i])
 plt.legend()
-
+plt.savefig(plot_dir + 'ILcurveVolt.png')
+plt.savefig(plot_dir + 'ILcurveVolt.pdf')
 
 
 # making a plot of dynamic series resistance
@@ -108,7 +114,8 @@ for i in range(len(file_list)):
     ax1.plot(I_SMU[i],V_SMU[i],lines[i])
     ax2.plot(I_SMU[i][2:],dVdI[1:],solid_lines[i],label=labels[i])
 plt.legend()
-
+plt.savefig(plot_dir + 'SeriesRes.png')
+plt.savefig(plot_dir + 'SeriesRes.pdf')
 
 
 # finding power out in watts
@@ -158,16 +165,20 @@ I_thresh = -efficiency_intercepts/slope_efficiencies
 
 plt.figure()
 plt.xlabel('Current Through LD (A)')
-plt.ylabel('Power Out of LD into Integrating Sphere (W)')
-plt.xlim(1.25,2.05)
+plt.ylabel('Power Out of LD (W)')
+plt.xlim(1.2,2.05)
 plt.ylim(0,0.032)
 print('\nThreshold Currents:')
 for i in range(len(file_list)):
-    plt.plot(I_SMU[i],Pin[i],dots[i],label=labels[i],alpha=0.3)
+    plt.plot(I_SMU[i],Pin[i],dots[i],label=labels[i],alpha=0.4)
     Is = np.linspace(I_thresh[i],2.1,1000)
     plt.plot(Is, Is*slope_efficiencies[i] + efficiency_intercepts[i],lines[i])
     print(labels[i]+':',round(I_thresh[i],2))
 plt.legend()
+plt.savefig(plot_dir + 'ILcurve.png')
+plt.savefig(plot_dir + 'ILcurve.pdf')
+
+
 
 # using slope efficiencies to find differential quantum efficiency
 q = 1.602e-19 # electron charge (C)
@@ -215,9 +226,10 @@ plt.plot(Ls*1000,Ls*m + b,'r--')
 plt.plot(L*1000,inv_eta_d_30,'bo',label='T=30°C, $\\eta_i$='+str(round(eta_i_30,4))+', $\\langle \\alpha_i \\rangle$='+str(round(alpha_i_30,4))+'m$^{-1}$')
 plt.plot(Ls*1000,Ls*n + c,'b--')
 plt.xlabel('Cavity Length (mm)')
-plt.ylabel(r'Inverse Differential Quantum Efficiency, $1/\eta_d$')
+plt.ylabel(r'Inverse Differential Quantum Efficiency, $\eta_d^{-1}$')
 plt.legend()
-
+plt.savefig(plot_dir + 'DiffQuantEff.png')
+plt.savefig(plot_dir + 'DiffQuantEff.pdf')
 
 
 
@@ -246,16 +258,17 @@ print('Characteristic Temperature =',round(T0_3,2))
 Ts = np.linspace(np.log(283.15),np.log(308.15),1000)
 
 plt.figure()
-plt.plot(T,I_thresh_2,'ko',label='L=2mm, $T_0$='+str(round(T0_2,2))+'K')
+plt.plot(T,I_thresh_2,'ko',label='L=2 mm, $T_0$='+str(round(T0_2,2))+' K')
 plt.plot(np.exp(Ts),I0_2*np.exp(np.exp(Ts)/T0_2),'k--')
 
-plt.plot(T,I_thresh_3,'go',label='L=3mm, $T_0$='+str(round(T0_3,2))+'K')
+plt.plot(T,I_thresh_3,'go',label='L=3 mm, $T_0$='+str(round(T0_3,2))+' K')
 plt.plot(np.exp(Ts),I0_3*np.exp(np.exp(Ts)/T0_3),'g--')
 plt.xlabel('Temperature (K)')
 plt.ylabel('Threshold Current (A)')
 plt.legend()
+plt.savefig(plot_dir + 'ThresholdCurrent.png')
+plt.savefig(plot_dir + 'ThresholdCurrent.pdf')
 
-
-
+plt.show()
 
 
