@@ -170,7 +170,7 @@ reprogram_experiment(SMU, DMM, args.count, args.DMMcount, args.DMMapertime)
 
 
 for i in range(len(currents)): 
-    V, I, L = measure(SMU, DMM, currents[i], args.pulsewidth, args.acq_delay, args.apertime, args.DMMcount)
+    V, I, L = measure(SMU, DMM, currents[i], args.pulsewidth, args.acqdelay, args.apertime, args.DMMcount)
     SMU_volts.append(V)
     SMU_currs.append(I)
     print('For curr: ', currents[i])
