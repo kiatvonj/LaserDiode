@@ -141,16 +141,18 @@ above_thresh = read_spectrum_data('data_spectra/'+file_list[11])[1]
 below_lamdas, below_thresh = smooth(lamdas,below_thresh,'Y')
 # below_lamdas, below_thresh = smooth(below_lamdas,below_thresh,'Y')
 
-plt.plot(below_lamdas-40,below_thresh/max(below_thresh)*1)
-plt.plot(lamdas,at_thresh/max(at_thresh)*1.5)
-plt.plot(lamdas+40,above_thresh/max(above_thresh)*2)
+plt.plot(below_lamdas-40,below_thresh/max(below_thresh)*1, label='< Threshold')
+plt.plot(lamdas,at_thresh/max(at_thresh)*1.5, label = '= Threshold')
+plt.plot(lamdas+40,above_thresh/max(above_thresh)*2, label = '> Threhsold')
 plt.yticks(ticks = [])
 plt.xticks(ticks = [])
 plt.ylabel('Intensity (a.u.)')
 plt.xlabel('Wavelength (shifted a.u.)')
 plt.xlim(700,900)
 plt.ylim(0,2.1)
+plt.legend()
 plt.savefig(plot_directory+'Example_Spectra.pdf', bbox_inches='tight')
+plt.savefig(plot_directory+'Example_Spectra.png', bbox_inches='tight')
 
 
 

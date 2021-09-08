@@ -219,7 +219,7 @@ L = np.array([2e-3,3e-3]) # m
 m,b = np.polyfit(L,inv_eta_d_15,deg=1)
 
 eta_i_15 = 1/b
-alpha_i_15 = np.log(1/.33)/b
+alpha_i_15 = m*np.log(1/.33)/b
 
 print('\nFor T=15°C:')
 print('Injection Efficiency =',round(eta_i_15,4))
@@ -230,7 +230,7 @@ inv_eta_d_30 = np.array([1/eta_d[1],1/eta_d[3]])
 n,c = np.polyfit(L,inv_eta_d_30,deg=1)
 
 eta_i_30 = 1/c
-alpha_i_30 = np.log(1/.33)/c
+alpha_i_30 = n*np.log(1/.33)/c
 
 print('\nFor T=30°C:')
 print('Injection Efficiency =',round(eta_i_30,4))
@@ -240,10 +240,10 @@ Ls = np.linspace(1.9e-3,3.1e-3,1000)
 
 plt.figure(figsize=(3.2, 3.2))
 plt.plot(L*1000,inv_eta_d_15,'ro',
-         label='T=15°C, $\\eta_i$='+str(round(eta_i_15,4))+', $\\langle \\alpha_i \\rangle$='+str(round(alpha_i_15,4))+'m$^{-1}$')
+         label='T=15°C, $\\eta_i$='+str(round(eta_i_15,4))+', $\\langle \\alpha_i \\rangle$='+str(round(alpha_i_15/100,4))+'cm$^{-1}$')
 plt.plot(Ls*1000,Ls*m + b,'r--')
 
-plt.plot(L*1000,inv_eta_d_30,'bo',label='T=30°C, $\\eta_i$='+str(round(eta_i_30,4))+', $\\langle \\alpha_i \\rangle$='+str(round(alpha_i_30,4))+'m$^{-1}$')
+plt.plot(L*1000,inv_eta_d_30,'bo',label='T=30°C, $\\eta_i$='+str(round(eta_i_30,4))+', $\\langle \\alpha_i \\rangle$='+str(round(alpha_i_30/100,4))+'cm$^{-1}$')
 plt.plot(Ls*1000,Ls*n + c,'b--')
 plt.xlabel('Cavity Length (mm)')
 plt.ylabel(r'Inverse Differential Quantum Efficiency, $\eta_d^{-1}$')
