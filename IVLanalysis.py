@@ -68,6 +68,8 @@ labels = ['2 mm, 15°C','2 mm, 30°C','3 mm, 15°C','3 mm, 30°C']
 
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams.update({'font.size': 9})
+plt.rcParams['figure.dpi'] = 300
+plt.rcParams['savefig.dpi'] = 300
 # plt.rcParams["figure.figsize"] = (4, 3.8)
 
 
