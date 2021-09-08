@@ -89,6 +89,8 @@ def plot_spectra(filename, scale_factor = 1):
 
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams.update({'font.size': 9})
+plt.rcParams['figure.dpi'] = 300
+plt.rcParams['savefig.dpi'] = 300
 
 # FWHMs = []
 # for i in os.listdir('data_spectra'):
