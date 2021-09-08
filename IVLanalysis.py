@@ -67,33 +67,51 @@ labels = ['2 mm, 15°C','2 mm, 30°C','3 mm, 15°C','3 mm, 30°C']
 # plt.legend()
 
 plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams.update({'font.size': 9})
+# plt.rcParams["figure.figsize"] = (4, 3.8)
 
-fig, ax1 = plt.subplots()
-ax2 = fig.add_axes([.375,.3,.3,.55])
+
+fig, ax1 = plt.subplots(figsize=(3.2, 3.0))
+# ax2 = fig.add_axes([.375,.3,.3,.55])
 ax1.set_xlim(0,1.75)
-ax1.set_ylim(0,2.1)
-ax2.set_xlim(1.3,1.6)
-ax2.set_ylim(0,1.2)
+ax1.set_ylim(0,2)
+# ax2.set_xlim(1.3,1.6)
+# ax2.set_ylim(0,1.2)
 ax1.set_xlabel('Voltage Across LD (V)')
 ax1.set_ylabel('Injection Current (A)')
 for i in range(4):
     ax1.plot(V_SMU[i],I_SMU[i],solid_lines[i],label=labels[i])
-    ax2.plot(V_SMU[i],I_SMU[i],solid_lines[i])
+    # ax2.plot(V_SMU[i],I_SMU[i],solid_lines[i])
 
 
-rectangle = patches.Rectangle((1.3, 0), .3, 1.2, linewidth=1, edgecolor='gray',
+rectangle = patches.Rectangle((1.35, 0), .3, 1.5, linewidth=1, edgecolor='grey',
                               facecolor='none')
 ax1.add_patch(rectangle)
 ax1.legend()
+plt.savefig(plot_dir + 'IVcurveFull.png', bbox_inches='tight')
+plt.savefig(plot_dir + 'IVcurveFull.pdf', bbox_inches='tight')
 
-plt.figure()
+
+plt.figure(figsize=(3.2, 3.0))
+plt.xlabel('Voltage Across LD (V)')
+plt.ylabel('Injection Current (A)')
+for i in range(4):
+    plt.plot(V_SMU[i],I_SMU[i],solid_lines[i],label=labels[i])
+plt.ylim(0,1.5)
+plt.xlim(1.35, 1.65)
+plt.legend()
+plt.savefig(plot_dir + 'IVcurve.png', bbox_inches='tight')
+plt.savefig(plot_dir + 'IVcurve.pdf', bbox_inches='tight')
+
+
+plt.figure(figsize=(3.2, 3.0))
 plt.xlabel('Current Through LD (A)')
 plt.ylabel('Voltage Out of PD (V)')
 for i in range(len(file_list)):
     plt.plot(I_SMU[i],V_DMM[i],dots[i],label=labels[i])
 plt.legend()
-plt.savefig(plot_dir + 'ILcurveVolt.png')
-plt.savefig(plot_dir + 'ILcurveVolt.pdf')
+plt.savefig(plot_dir + 'ILcurveVolt.png', bbox_inches='tight')
+plt.savefig(plot_dir + 'ILcurveVolt.pdf', bbox_inches='tight')
 
 
 # making a plot of dynamic series resistance
@@ -101,7 +119,7 @@ plt.savefig(plot_dir + 'ILcurveVolt.pdf')
 #   current and V is the resultant voltage across the diode
 R_series = []
 
-fig, ax1 = plt.subplots()
+fig, ax1 = plt.subplots(figsize= (3.2, 3.2))
 ax2 = ax1.twinx()
 ax1.set_xlabel('Injection Current (A)')
 ax1.set_ylabel('Voltage Across LD (V)')
@@ -114,8 +132,8 @@ for i in range(len(file_list)):
     ax1.plot(I_SMU[i],V_SMU[i],lines[i])
     ax2.plot(I_SMU[i][2:],dVdI[1:],solid_lines[i],label=labels[i])
 plt.legend()
-plt.savefig(plot_dir + 'SeriesRes.png')
-plt.savefig(plot_dir + 'SeriesRes.pdf')
+plt.savefig(plot_dir + 'SeriesRes.png', bbox_inches='tight')
+plt.savefig(plot_dir + 'SeriesRes.pdf', bbox_inches='tight')
 
 
 # finding power out in watts
@@ -163,20 +181,20 @@ efficiency_intercepts = np.array(efficiency_intercepts)
 
 I_thresh = -efficiency_intercepts/slope_efficiencies
 
-plt.figure()
+plt.figure(figsize=(3.2, 3.0))
 plt.xlabel('Current Through LD (A)')
 plt.ylabel('Power Out of LD (W)')
 plt.xlim(1.2,2.05)
 plt.ylim(0,0.032)
 print('\nThreshold Currents:')
 for i in range(len(file_list)):
-    plt.plot(I_SMU[i],Pin[i],dots[i],label=labels[i],alpha=0.4)
+    plt.plot(I_SMU[i],Pin[i],dots[i],alpha=0.2)
     Is = np.linspace(I_thresh[i],2.1,1000)
-    plt.plot(Is, Is*slope_efficiencies[i] + efficiency_intercepts[i],lines[i])
+    plt.plot(Is, Is*slope_efficiencies[i] + efficiency_intercepts[i],lines[i],label=labels[i])
     print(labels[i]+':',round(I_thresh[i],2))
 plt.legend()
-plt.savefig(plot_dir + 'ILcurve.png')
-plt.savefig(plot_dir + 'ILcurve.pdf')
+plt.savefig(plot_dir + 'ILcurve.png', bbox_inches='tight')
+plt.savefig(plot_dir + 'ILcurve.pdf', bbox_inches='tight')
 
 
 
@@ -218,7 +236,7 @@ print('Net Internal Optical Loss =',round(alpha_i_30,4))
 
 Ls = np.linspace(1.9e-3,3.1e-3,1000)
 
-plt.figure()
+plt.figure(figsize=(3.2, 3.2))
 plt.plot(L*1000,inv_eta_d_15,'ro',
          label='T=15°C, $\\eta_i$='+str(round(eta_i_15,4))+', $\\langle \\alpha_i \\rangle$='+str(round(alpha_i_15,4))+'m$^{-1}$')
 plt.plot(Ls*1000,Ls*m + b,'r--')
@@ -228,8 +246,8 @@ plt.plot(Ls*1000,Ls*n + c,'b--')
 plt.xlabel('Cavity Length (mm)')
 plt.ylabel(r'Inverse Differential Quantum Efficiency, $\eta_d^{-1}$')
 plt.legend()
-plt.savefig(plot_dir + 'DiffQuantEff.png')
-plt.savefig(plot_dir + 'DiffQuantEff.pdf')
+plt.savefig(plot_dir + 'DiffQuantEff.png', bbox_inches='tight')
+plt.savefig(plot_dir + 'DiffQuantEff.pdf', bbox_inches='tight')
 
 
 
@@ -257,7 +275,7 @@ print('Characteristic Temperature =',round(T0_3,2))
 
 Ts = np.linspace(np.log(283.15),np.log(308.15),1000)
 
-plt.figure()
+plt.figure(figsize=(3.2, 3.2    ))
 plt.plot(T,I_thresh_2,'ko',label='L=2 mm, $T_0$='+str(round(T0_2,2))+' K')
 plt.plot(np.exp(Ts),I0_2*np.exp(np.exp(Ts)/T0_2),'k--')
 
@@ -266,8 +284,8 @@ plt.plot(np.exp(Ts),I0_3*np.exp(np.exp(Ts)/T0_3),'g--')
 plt.xlabel('Temperature (K)')
 plt.ylabel('Threshold Current (A)')
 plt.legend()
-plt.savefig(plot_dir + 'ThresholdCurrent.png')
-plt.savefig(plot_dir + 'ThresholdCurrent.pdf')
+plt.savefig(plot_dir + 'ThresholdCurrent.png', bbox_inches='tight')
+plt.savefig(plot_dir + 'ThresholdCurrent.pdf', bbox_inches='tight')
 
 plt.show()
 

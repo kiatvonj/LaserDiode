@@ -88,6 +88,7 @@ def plot_spectra(filename, scale_factor = 1):
     return FWHM
 
 plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams.update({'font.size': 9})
 
 # FWHMs = []
 # for i in os.listdir('data_spectra'):
@@ -101,27 +102,27 @@ for i in file_list:
     if i == '.DS_Store':
         file_list.remove(i)
 
-plt.figure()
+plt.figure(figsize = (3.5, 3))
 for i in range(len(file_list[:3])):
     plot_spectra('data_spectra/'+file_list[i],i+1)
-    plt.savefig(plot_directory+'Spectra_2.00_15.00.pdf')
+    plt.savefig(plot_directory+'Spectra_2.00_15.00.pdf', bbox_inches='tight')
     
-plt.figure()
+plt.figure(figsize = (3.5, 3))
 for i in range(len(file_list[3:6])):
     plot_spectra('data_spectra/'+file_list[i+3],i+1)
-    plt.savefig(plot_directory+'Spectra_2.00_30.00.pdf')
+    plt.savefig(plot_directory+'Spectra_2.00_30.00.pdf', bbox_inches='tight')
 
 
-plt.figure()
+plt.figure(figsize = (3.5, 3))
 for i in range(len(file_list[6:9])):
     plot_spectra('data_spectra/'+file_list[i+6],i+1)
-    plt.savefig(plot_directory+'Spectra_3.00_15.00.pdf')
+    plt.savefig(plot_directory+'Spectra_3.00_15.00.pdf', bbox_inches='tight')
 
     
-plt.figure()
+plt.figure(figsize = (3.5, 3))
 for i in range(len(file_list[9:12])):
     plot_spectra('data_spectra/'+file_list[i+9],i+1)
-    plt.savefig(plot_directory+'Spectra_3.00_30.00.pdf')
+    plt.savefig(plot_directory+'Spectra_3.00_30.00.pdf', bbox_inches='tight')
 
 # FIXME find a way to add an option to smooth spectra. Maybe iterate through each in
 #       the directory and prompt the user (Does this need smoothing? (Y/N) )
@@ -131,7 +132,7 @@ for i in range(len(file_list[9:12])):
 # make a nice-looking plot to highlight linewidth differences as current increases
 #   offset the center of each spectrum
 
-plt.figure()
+plt.figure(figsize = (3.5, 3))
 
 lamdas, below_thresh = read_spectrum_data('data_spectra/'+file_list[9])
 at_thresh = read_spectrum_data('data_spectra/'+file_list[10])[1]
@@ -149,7 +150,7 @@ plt.ylabel('Intensity (a.u.)')
 plt.xlabel('Wavelength (shifted a.u.)')
 plt.xlim(700,900)
 plt.ylim(0,2.1)
-plt.savefig(plot_directory+'Example_Spectra.pdf')
+plt.savefig(plot_directory+'Example_Spectra.pdf', bbox_inches='tight')
 
 
 

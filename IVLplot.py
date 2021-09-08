@@ -60,6 +60,8 @@ L = np.array(L)
 
 # Set fonts on plot 
 plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams.update({'font.size': 10})
+plt.rcParams["figure.figsize"] = (3.5, 3)
 cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
 # IV Curve
@@ -81,12 +83,12 @@ ax1.set_xlim(0)
 ax1.set_ylim(0)
 ax1.legend(loc=2)
 # Making inset for zoomed in portion
-ax2 = plt.axes([0,0,1,1])
+# ax2 = plt.axes([0,0,1,1])
 ip = InsetPosition(ax1, [0.38,0.27,0.35,0.7])
-ax2.set_axes_locator(ip)
+# ax2.set_axes_locator(ip)
 maxV = 0
 minV = 100
-mark_inset(ax1, ax2, loc1=1, loc2=3, fc="none", ec='0.5')
+# mark_inset(ax1, ax2, loc1=1, loc2=3, fc="none", ec='0.5')
 for i in range(len(CL)):
     V0 = np.array(V[i])
     I0 = np.array(I[i])
@@ -109,10 +111,10 @@ for i in range(len(CL)):
     if i == 3:
         colour = 'green'
     # ax2.scatter(V0[0:ind2], I0[0:ind2], s = 3, color = 'C' + str(i))#, label = '{:.1f} mm, {:.2f} C'.format(CL[i],T[i]))
-    ax2.plot(V0[0:ind2], I0[0:ind2], label = '{:.1f} mm, {:.2f} C'.format(CL[i],T[i]), color = colour)
+    # ax2.plot(V0[0:ind2], I0[0:ind2], label = '{:.1f} mm, {:.2f} C'.format(CL[i],T[i]), color = colour)
 
-ax2.set_ylim(0, 1.2)
-ax2.set_xlim(minV, maxV)
+# ax2.set_ylim(0, 1.2)
+# ax2.set_xlim(minV, maxV)
 plt.savefig(plot_dir + 'IVcurve.pdf')
 plt.savefig(plot_dir + 'IVcurve.png')
 
