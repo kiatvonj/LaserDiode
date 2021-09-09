@@ -225,40 +225,59 @@ for i in range(len(file_list)):
 #   For T=15°C: make fit y=mx + b
 inv_eta_d_15 = np.array([1/eta_d[0],1/eta_d[2],1/eta_d[4]]) # units?
 L = np.array([1.5e-3, 2e-3,3e-3]) # m
-m,b = np.polyfit(L,inv_eta_d_15,deg=1)
+m1,b1 = np.polyfit(L[:2],inv_eta_d_15[:2],deg=1) # for 1.5mm and 2.0mm
+m2,b2 = np.polyfit(L[1:],inv_eta_d_15[1:],deg=1) # for 2.0mm and 3.0mm
 
-eta_i_15 = 1/b
-alpha_i_15 = m*np.log(1/.33)/b
+eta_i_15_1 = 1/b1
+alpha_i_15_1 = m1*np.log(1/.33)/b1
+eta_i_15_2 = 1/b2
+alpha_i_15_2 = m2*np.log(1/.33)/b2
 
-print('\nFor T=15°C:')
-print('Injection Efficiency =',round(eta_i_15,4))
-print('Net Internal Optical Loss =',round(alpha_i_15,4))
+print('\nFor T=15°C, 1.5mm & 2mm fit:')
+print('Injection Efficiency =',round(eta_i_15_1,4))
+print('Net Internal Optical Loss =',round(alpha_i_15_1,4))
+print('For T=15°C, 2mm & 3mm fit:')
+print('Injection Efficiency =',round(eta_i_15_2,4))
+print('Net Internal Optical Loss =',round(alpha_i_15_2,4))
+
 
 #   For T=30°C: make fit y=nx + c
 inv_eta_d_30 = np.array([1/eta_d[1], 1/eta_d[3], 1/eta_d[5]])
-n,c = np.polyfit(L,inv_eta_d_30,deg=1)
+n1,c1 = np.polyfit(L[:2],inv_eta_d_30[:2],deg=1)
+n2,c2 = np.polyfit(L[1:],inv_eta_d_30[1:],deg=1)
 
-eta_i_30 = 1/c
-alpha_i_30 = n*np.log(1/.33)/c
+eta_i_30_1 = 1/c1
+alpha_i_30_1 = n1*np.log(1/.33)/c1
+eta_i_30_2 = 1/c2
+alpha_i_30_2 = n2*np.log(1/.33)/c2
 
-print('\nFor T=30°C:')
-print('Injection Efficiency =',round(eta_i_30,4))
-print('Net Internal Optical Loss =',round(alpha_i_30,4))
+print('\nFor T=30°C, 1.5mm & 2mm fit:')
+print('Injection Efficiency =',round(eta_i_30_1,4))
+print('Net Internal Optical Loss =',round(alpha_i_30_1,4))
+print('For T=30°C, 1.5mm & 2mm fit:')
+print('Injection Efficiency =',round(eta_i_30_2,4))
+print('Net Internal Optical Loss =',round(alpha_i_30_2,4))
 
 Ls = np.linspace(1.4e-3,3.1e-3,1000)
 
 plt.figure(figsize=(3.2, 3.2))
-plt.plot(L*1000,inv_eta_d_15,'ro',
-         label='T=15°C, $\\eta_i$='+str(round(eta_i_15,4))+', $\\langle \\alpha_i \\rangle$='+str(round(alpha_i_15/100,4))+'cm$^{-1}$')
-plt.plot(Ls*1000,Ls*m + b,'r--')
+plt.plot(L*1000,inv_eta_d_15,'ro')
+plt.plot(Ls*1000,Ls*m2 + b2,'r--',label='T=15°C, 1.5-2mm Fit')
+plt.plot(Ls*1000,Ls*m1 + b1,'r:',label='T=15°C, 2-3mm Fit')
 
-plt.plot(L*1000,inv_eta_d_30,'bo',label='T=30°C, $\\eta_i$='+str(round(eta_i_30,4))+', $\\langle \\alpha_i \\rangle$='+str(round(alpha_i_30/100,4))+'cm$^{-1}$')
-plt.plot(Ls*1000,Ls*n + c,'b--')
+plt.plot(L*1000,inv_eta_d_30,'bo')
+plt.plot(Ls*1000,Ls*n2 + c2,'b--',label='T=30°C, 1.5-2mm Fit')
+plt.plot(Ls*1000,Ls*n1 + c1,'b:',label='T=30°C, 2-3mm Fit')
+
+# plt.plot(L*1000,inv_eta_d_30,'bo',label='T=30°C, $\\eta_i$='+str(round(eta_i_30,4))+', $\\langle \\alpha_i \\rangle$='+str(round(alpha_i_30/100,4))+'cm$^{-1}$')
+# plt.plot(Ls*1000,Ls*n + c,'b--')
 plt.xlabel('Cavity Length (mm)')
 plt.ylabel(r'Inverse Differential Quantum Efficiency, $\eta_d^{-1}$')
 plt.legend()
 # plt.savefig(plot_dir + 'DiffQuantEff.png', bbox_inches='tight')
 # plt.savefig(plot_dir + 'DiffQuantEff.pdf', bbox_inches='tight')
+plt.savefig(plot_dir + 'DiffQuantEff_2fits.png', bbox_inches='tight')
+plt.savefig(plot_dir + 'DiffQuantEff_2fits.pdf', bbox_inches='tight')
 
 
 
