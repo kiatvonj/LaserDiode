@@ -76,7 +76,7 @@ for i in range(len(CL)):
     #     colour = 'red'
     # if i == 3:
     #     colour = 'green'
-    ax1.plot(V[i], I[i], label = '{:.0f} mm, {:.0f}°C'.format(CL[i],T[i]), color = 'C' + str(i))
+    ax1.plot(V[i], I[i], label = '{:.1f} mm, {:.2f}°C'.format(CL[i],T[i]), color = 'C' + str(i))
 ax1.set_xlabel('Voltage Across LD (V)')
 ax1.set_ylabel('Injection Current (A)')
 ax1.set_xlim(0)
