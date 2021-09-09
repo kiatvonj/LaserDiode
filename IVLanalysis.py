@@ -173,7 +173,7 @@ for i in range(len(V_DMM)):
 
 
 # finding slope efficiencies for each
-start_idx = [100, 115, 170,194,144,162] # index where lasing starts
+start_idx = [20, 23, 170,194,144,162] # index where lasing starts
 
 slope_efficiencies = []
 efficiency_intercepts = []
