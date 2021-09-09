@@ -17,7 +17,7 @@ def best_fit(x,y):
     return m, b
 
 def V_to_P(V):
-    responsivity = 0.5e-3 # A/mW
+    responsivity = 0.5 # A/W
     R_load = 10e3         # V/A
     return V/(responsivity * R_load)
 
@@ -61,22 +61,22 @@ L = np.array(L)
 # Set fonts on plot 
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams.update({'font.size': 10})
-plt.rcParams["figure.figsize"] = (3.5, 3)
+# plt.rcParams["figure.figsize"] = (3.5,     3)
 cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
 # IV Curve
 fig, ax1 = plt.subplots()
 for i in range(len(CL)):
     # ax1.scatter(V[i], I[i], s = 3, color = 'C' + str(i))#, label = '{:.1f} mm, {:.2f} C'.format(CL[i],T[i]))
-    if i == 0:
-        colour = 'black'
-    if i == 1:
-        colour = 'blue'
-    if i == 2:
-        colour = 'red'
-    if i == 3:
-        colour = 'green'
-    ax1.plot(V[i], I[i], label = '{:.0f} mm, {:.0f}°C'.format(CL[i],T[i]), color = colour)
+    # if i == 0:
+    #     colour = 'black'
+    # if i == 1:
+    #     colour = 'blue'
+    # if i == 2:
+    #     colour = 'red'
+    # if i == 3:
+    #     colour = 'green'
+    ax1.plot(V[i], I[i], label = '{:.0f} mm, {:.0f}°C'.format(CL[i],T[i]), color = 'C' + str(i))
 ax1.set_xlabel('Voltage Across LD (V)')
 ax1.set_ylabel('Injection Current (A)')
 ax1.set_xlim(0)
@@ -102,21 +102,14 @@ for i in range(len(CL)):
     if maxV < point2:
         maxV = point2
 
-    if i == 0:
-        colour = 'black'
-    if i == 1:
-        colour = 'blue'
-    if i == 2:
-        colour = 'red'
-    if i == 3:
-        colour = 'green'
+
     # ax2.scatter(V0[0:ind2], I0[0:ind2], s = 3, color = 'C' + str(i))#, label = '{:.1f} mm, {:.2f} C'.format(CL[i],T[i]))
     # ax2.plot(V0[0:ind2], I0[0:ind2], label = '{:.1f} mm, {:.2f} C'.format(CL[i],T[i]), color = colour)
 
 # ax2.set_ylim(0, 1.2)
 # ax2.set_xlim(minV, maxV)
-plt.savefig(plot_dir + 'IVcurve.pdf')
-plt.savefig(plot_dir + 'IVcurve.png')
+# plt.savefig(plot_dir + 'IVcurve.pdf')
+# plt.savefig(plot_dir + 'IVcurve.png')
 
 
 # IL Curve
@@ -146,7 +139,7 @@ ax3.set_xlabel('Current (A)')
 ax3.set_ylabel('Optical Power (V)')
 ax3.axvline(0, color = 'grey', alpha = 0.5)
 ax3.axhline(0, color = 'grey', alpha = 0.5)
-ax3.set_xlim(1,2)
+# ax3.set_xlim(1,2)
 ax3.set_ylim(0)
 ax3.legend(loc = 2)
 
@@ -170,7 +163,7 @@ CL = np.array(CL)
 CL_uniq = np.unique(CL)
 slope_V = np.array(slope_V)
 int_V = np.array(int_V)
-slope_P = V_to_P(slope_V) * 1e-3 # Back to W/A
+slope_P = V_to_P(slope_V)*2*85.2751 # Back to W/A
 
 q = 1.602176634e-19  # Charge of e (C)
 h = 6.62607015e-34   # Planck (J s)
@@ -214,11 +207,14 @@ ni = np.array([1/intercept_15, 1/intercept_30])
 R = 0.33            # Reflectance in LD
 alpha = np.array([slope_15*ni[0]*np.log(1/R), slope_30*ni[1]*np.log(1/R)])
 
+# slopes = np.array([slope_15, slope_30])
+
 
 for i in range(len(CL)):
     print('\n For CL = {:.1f} mm, T = {:.2f} C'.format(CL[i], T[i]))
     print('--------------------------------------------------------')
     print('{:<20s}{:>5s}{:^3s}{:<1f} A'.format('Thresholf Curr: ', 'Ith', '=', -int_V[i]/slope_V[i]))
+    print('{:<20s}{:>5s}{:^3s}{:<1f} '.format('dP/dI: ', 'dP/dI', '=', slope_P[i]))
     print('{:<20s}{:>5s}{:^3s}{:<1f} '.format('Diff Quant Eff: ', 'nd', '=', nd[i]))
     print('{:<20s}{:>5s}{:^3s}{:<1f} '.format('Injection Eff: ', 'ni', '=', ni[i%2]))
     print('{:<20s}{:>5s}{:^3s}{:<1f} '.format('Net Int Opt Loss: ', 'alpha', '=', alpha[i%2]))

@@ -108,23 +108,27 @@ plt.figure(figsize = (3.5, 3))
 for i in range(len(file_list[:3])):
     plot_spectra('data_spectra/'+file_list[i],i+1)
     plt.savefig(plot_directory+'Spectra_2.00_15.00.pdf', bbox_inches='tight')
+    plt.savefig(plot_directory+'Spectra_2.00_15.00.png', bbox_inches='tight')
     
 plt.figure(figsize = (3.5, 3))
 for i in range(len(file_list[3:6])):
     plot_spectra('data_spectra/'+file_list[i+3],i+1)
     plt.savefig(plot_directory+'Spectra_2.00_30.00.pdf', bbox_inches='tight')
+    plt.savefig(plot_directory+'Spectra_2.00_30.00.png', bbox_inches='tight')
 
 
 plt.figure(figsize = (3.5, 3))
 for i in range(len(file_list[6:9])):
     plot_spectra('data_spectra/'+file_list[i+6],i+1)
     plt.savefig(plot_directory+'Spectra_3.00_15.00.pdf', bbox_inches='tight')
+    plt.savefig(plot_directory+'Spectra_3.00_15.00.png', bbox_inches='tight')
 
     
 plt.figure(figsize = (3.5, 3))
 for i in range(len(file_list[9:12])):
     plot_spectra('data_spectra/'+file_list[i+9],i+1)
     plt.savefig(plot_directory+'Spectra_3.00_30.00.pdf', bbox_inches='tight')
+    plt.savefig(plot_directory+'Spectra_3.00_30.00.png', bbox_inches='tight')
 
 # FIXME find a way to add an option to smooth spectra. Maybe iterate through each in
 #       the directory and prompt the user (Does this need smoothing? (Y/N) )
@@ -145,7 +149,7 @@ below_lamdas, below_thresh = smooth(lamdas,below_thresh,'Y')
 
 plt.plot(below_lamdas-40,below_thresh/max(below_thresh)*1, label='< Threshold')
 plt.plot(lamdas,at_thresh/max(at_thresh)*1.5, label = '= Threshold')
-plt.plot(lamdas+40,above_thresh/max(above_thresh)*2, label = '> Threhsold')
+plt.plot(lamdas+40,above_thresh/max(above_thresh)*2, label = '> Threshold')
 plt.yticks(ticks = [])
 plt.xticks(ticks = [])
 plt.ylabel('Intensity (a.u.)')
