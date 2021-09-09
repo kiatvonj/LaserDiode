@@ -152,23 +152,28 @@ plt.legend()
 #   the other half is emitted out the back of the diode
 
 responsivity = 0.5 # A/W
-R_load = 10000 # ohms
+R_load = 1086 # ohms
 
-M = 13.45
+M = 36.4
 A_sphere = 4*np.pi*25.4**2
 A_port = np.pi*1.5**2
 
 Pin = [] # power output by LD into integrating sphere (might only be 1/2 the true Pout)
-for i in V_DMM:
-    P_detector = i/(responsivity*R_load)
-    P_in = 2 * (A_sphere/(A_port * M)) * P_detector #factor of 2 assuming the back side of the LD
-    # isn't coated, second factor is SA of sphere/SA of detector
-    Pin.append(P_in)
+for i in range(len(V_DMM)):
+    if i < 4:
+        P_detector = V_DMM[i]/(responsivity*R_load)
+        P_in = 2 * (A_sphere/(A_port * M)) * P_detector #factor of 2 assuming the back side of the LD
+        # isn't coated, second factor is SA of sphere/SA of detector
+        Pin.append(P_in)
+    else:
+        P_detector = V_DMM[i]/(responsivity*R_load)
+        P_in = 2 * (A_sphere/(A_port * M)) * P_detector #FIXME this 3 is a fudge factor
+        Pin.append(P_in)
 
 
 
 # finding slope efficiencies for each
-start_idx = [100, 100, 170,194,144,162] # index where lasing starts
+start_idx = [100, 115, 170,194,144,162] # index where lasing starts
 
 slope_efficiencies = []
 efficiency_intercepts = []
@@ -230,7 +235,7 @@ print('Injection Efficiency =',round(eta_i_15,4))
 print('Net Internal Optical Loss =',round(alpha_i_15,4))
 
 #   For T=30°C: make fit y=nx + c
-inv_eta_d_30 = np.array([1/eta_d[1],1/eta_d[3], 1/eta_d[5]])
+inv_eta_d_30 = np.array([1/eta_d[1], 1/eta_d[3], 1/eta_d[5]])
 n,c = np.polyfit(L,inv_eta_d_30,deg=1)
 
 eta_i_30 = 1/c
@@ -240,7 +245,7 @@ print('\nFor T=30°C:')
 print('Injection Efficiency =',round(eta_i_30,4))
 print('Net Internal Optical Loss =',round(alpha_i_30,4))
 
-Ls = np.linspace(1.9e-3,3.1e-3,1000)
+Ls = np.linspace(1.4e-3,3.1e-3,1000)
 
 plt.figure(figsize=(3.2, 3.2))
 plt.plot(L*1000,inv_eta_d_15,'ro',
@@ -279,7 +284,7 @@ plt.legend()
 # print('\nFor L=3mm:')
 # print('Characteristic Temperature =',round(T0_3,2))
 
-# Ts = np.linspace(np.log(283.15),np.log(308.15),1000)
+# Ts = np.linspace(np.log(263.15),np.log(328.15),1000)
 
 # plt.figure(figsize=(3.2, 3.2    ))
 # plt.plot(T,I_thresh_2,'ko',label='L=2 mm, $T_0$='+str(round(T0_2,2))+' K')
