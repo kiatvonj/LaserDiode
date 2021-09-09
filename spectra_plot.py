@@ -47,6 +47,7 @@ def plot_spectra(filename, scale_factor = 1):
     
     s = filename.split('_')
     label = 'L='+s[-3]+'mm, T='+s[-2]+'°C, I='+s[-1][:4]+'A'
+    label = 'I='+s[-1][:4]+' A'
     
     plt.plot(lamdas,intens/max(intens) * scale_factor,label=label)
     # plt.plot(lamdas,intens/max(intens),'k-')
@@ -81,10 +82,11 @@ def plot_spectra(filename, scale_factor = 1):
     
     plt.xlabel('Wavelength (nm)')
     plt.ylabel('Intensity (a.u.)')
-    plt.xlim(760,840)
+    plt.xlim(780,820)
+    plt.ylim(0,3.1)
     # plt.tick_params(left=False)
     plt.yticks(ticks = [])
-    plt.legend()
+    plt.legend(loc='upper left')
     return FWHM
 
 plt.rcParams["font.family"] = "Times New Roman"
@@ -157,8 +159,8 @@ plt.xlabel('Wavelength (shifted a.u.)')
 plt.xlim(700,900)
 plt.ylim(0,2.1)
 plt.legend()
-plt.savefig(plot_directory+'Example_Spectra.pdf', bbox_inches='tight')
-plt.savefig(plot_directory+'Example_Spectra.png', bbox_inches='tight')
+# plt.savefig(plot_directory+'Example_Spectra.pdf', bbox_inches='tight')
+# plt.savefig(plot_directory+'Example_Spectra.png', bbox_inches='tight')
 
 
 
