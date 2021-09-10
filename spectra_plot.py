@@ -46,7 +46,7 @@ def plot_spectra(filename, scale_factor = 1):
     lamdas, intens = read_spectrum_data(filename)
     
     s = filename.split('_')
-    label = 'L='+s[-3]+'mm, T='+s[-2]+'°C, I='+s[-1][:4]+'A'
+    label1 = 'L='+s[-3]+'mm, T='+s[-2]+'°C, I='+s[-1][:4]+'A'
     label = 'I='+s[-1][:4]+' A'
     
     plt.plot(lamdas,intens/max(intens) * scale_factor,label=label)
@@ -74,7 +74,7 @@ def plot_spectra(filename, scale_factor = 1):
     
     FWHM = lamdas[-idx2] - lamdas[idx1]
     
-    print('For '+label+':')
+    print('For '+label1+':')
     print('FWHM:',round(FWHM,2))
     print('Peak at',round(lamda_peak,2))
     print('\n')
