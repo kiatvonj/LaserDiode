@@ -39,7 +39,7 @@ for i in file_list:
         file_list.remove(i)
 
 file_list.sort()
-file_list = file_list[:6]
+file_list = file_list[2:6]
 
 V_SMU = []
 I_SMU = []
@@ -51,14 +51,14 @@ for i in file_list:
     V_DMM.append(Vpd)
         
 
-# dots = ['k.','b.','r.','g.']
-# lines = ['k--','b--','r--','g--']
-# solid_lines = ['k-','b-','r-','g-']
-# labels = ['2 mm, 15°C','2 mm, 30°C','3 mm, 15°C','3 mm, 30°C']
-dots = ['m.', 'y.', 'k.','b.','r.','g.']
-lines = ['m--', 'y--', 'k--','b--','r--','g--']
-solid_lines = ['m-', 'y-', 'k-','b-','r-','g-']
-labels = ['1.5 mm, 15°C','1.5 mm, 30°C', '2 mm, 15°C','2 mm, 30°C','3 mm, 15°C','3 mm, 30°C']
+dots = ['k.','b.','r.','g.']
+lines = ['k--','b--','r--','g--']
+solid_lines = ['k-','b-','r-','g-']
+labels = ['2 mm, 15°C','2 mm, 30°C','3 mm, 15°C','3 mm, 30°C']
+# dots = ['m.', 'y.', 'k.','b.','r.','g.']
+# lines = ['m--', 'y--', 'k--','b--','r--','g--']
+# solid_lines = ['m-', 'y-', 'k-','b-','r-','g-']
+# labels = ['1.5 mm, 15°C','1.5 mm, 30°C', '2 mm, 15°C','2 mm, 30°C','3 mm, 15°C','3 mm, 30°C']
 
 
 
@@ -72,8 +72,8 @@ labels = ['1.5 mm, 15°C','1.5 mm, 30°C', '2 mm, 15°C','2 mm, 30°C','3 mm, 15
 
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams.update({'font.size': 9})
-plt.rcParams['figure.dpi'] = 150
-plt.rcParams['savefig.dpi'] = 150
+plt.rcParams['figure.dpi'] = 300
+plt.rcParams['savefig.dpi'] = 300
 # plt.rcParams["figure.figsize"] = (4, 3.8)
 
 
@@ -90,12 +90,12 @@ for i in range(len(file_list)):
     # ax2.plot(V_SMU[i],I_SMU[i],solid_lines[i])
 
 
-rectangle = patches.Rectangle((1.35, 0), .3, 1.5, linewidth=1, edgecolor='grey',
-                              facecolor='none')
-ax1.add_patch(rectangle)
+# rectangle = patches.Rectangle((1.35, 0), .3, 1.5, linewidth=1, edgecolor='grey',
+#                               facecolor='none')
+# ax1.add_patch(rectangle)
 ax1.legend()
-# plt.savefig(plot_dir + 'IVcurveFull.png', bbox_inches='tight')
-# plt.savefig(plot_dir + 'IVcurveFull.pdf', bbox_inches='tight')
+plt.savefig(plot_dir + 'IVcurveFull.png', bbox_inches='tight')
+plt.savefig(plot_dir + 'IVcurveFull.pdf', bbox_inches='tight')
 
 
 plt.figure(figsize=(3.2, 3.0))
@@ -106,18 +106,18 @@ for i in range(len(file_list)):
 plt.ylim(0,1.5)
 plt.xlim(1.35, 1.65)
 plt.legend()
-# plt.savefig(plot_dir + 'IVcurve.png', bbox_inches='tight')
-# plt.savefig(plot_dir + 'IVcurve.pdf', bbox_inches='tight')
+plt.savefig(plot_dir + 'IVcurve.png', bbox_inches='tight')
+plt.savefig(plot_dir + 'IVcurve.pdf', bbox_inches='tight')
 
 
 plt.figure(figsize=(3.2, 3.0))
 plt.xlabel('Injection Current (A)')
 plt.ylabel('Voltage Out of PD (V)')
 for i in range(len(file_list)):
-    plt.plot(I_SMU[i],V_DMM[i],dots[i],label=labels[i])
+    plt.plot(I_SMU[i],V_DMM[i], dots[i],label=labels[i], markersize = 1)
 plt.legend()
-# plt.savefig(plot_dir + 'ILcurveVolt.png', bbox_inches='tight')
-# plt.savefig(plot_dir + 'ILcurveVolt.pdf', bbox_inches='tight')
+plt.savefig(plot_dir + 'ILcurveVolt.png', bbox_inches='tight')
+plt.savefig(plot_dir + 'ILcurveVolt.pdf', bbox_inches='tight')
 
 
 # making a plot of dynamic series resistance
@@ -129,7 +129,7 @@ fig, ax1 = plt.subplots(figsize= (3.2, 3.2))
 ax2 = ax1.twinx()
 ax1.set_xlabel('Injection Current (A)')
 ax1.set_ylabel('Voltage Across LD (V)')
-ax2.set_ylabel('Series Resistance (Ω)')
+ax2.set_ylabel('Series Resistance, dV/dI (Ω)')
 ax1.set_ylim(0,2.6)
 ax2.set_ylim(0,2.6)
 for i in range(len(file_list)):
@@ -137,9 +137,11 @@ for i in range(len(file_list)):
     R_series.append(dVdI)
     ax1.plot(I_SMU[i],V_SMU[i],lines[i])
     ax2.plot(I_SMU[i][2:],dVdI[1:],solid_lines[i],label=labels[i])
+plt.text(0.5, 1.65, 'VI Curve')
+plt.text(0.5, 0.18, 'dV/dI Curve')
 plt.legend()
-# plt.savefig(plot_dir + 'SeriesRes.png', bbox_inches='tight')
-# plt.savefig(plot_dir + 'SeriesRes.pdf', bbox_inches='tight')
+plt.savefig(plot_dir + 'SeriesRes.png', bbox_inches='tight')
+plt.savefig(plot_dir + 'SeriesRes.pdf', bbox_inches='tight')
 
 
 # finding power out in watts
@@ -173,7 +175,8 @@ for i in range(len(V_DMM)):
 
 
 # finding slope efficiencies for each
-start_idx = [20, 23, 170,194,144,162] # index where lasing starts
+start_idx = [170,194,144,162] # index where lasing starts
+# start_idx = [20, 23, 170,194,144,162] # index where lasing starts
 
 slope_efficiencies = []
 efficiency_intercepts = []
@@ -195,8 +198,8 @@ I_thresh = -efficiency_intercepts/slope_efficiencies
 plt.figure(figsize=(3.2, 3.0))
 plt.xlabel('Injection Current (A)')
 plt.ylabel('Power Out of LD (W)')
-# plt.xlim(1.2,2.05)
-plt.ylim(0,0.032)
+plt.xlim(1.2,2.05)
+plt.ylim(0, 0.11)
 print('\nThreshold Currents:')
 for i in range(len(file_list)):
     plt.plot(I_SMU[i],Pin[i],dots[i],alpha=0.2)
@@ -204,8 +207,8 @@ for i in range(len(file_list)):
     plt.plot(Is, Is*slope_efficiencies[i] + efficiency_intercepts[i],lines[i],label=labels[i])
     print(labels[i]+':',round(I_thresh[i],2))
 plt.legend()
-# plt.savefig(plot_dir + 'ILcurve.png', bbox_inches='tight')
-# plt.savefig(plot_dir + 'ILcurve.pdf', bbox_inches='tight')
+plt.savefig(plot_dir + 'ILcurve.png', bbox_inches='tight')
+plt.savefig(plot_dir + 'ILcurve.pdf', bbox_inches='tight')
 
 
 
@@ -223,37 +226,42 @@ for i in range(len(file_list)):
 
 # using eta_d and L, find injection efficiency and internal optical loss (for a given temp)
 #   For T=15°C: make fit y=mx + b
-inv_eta_d_15 = np.array([1/eta_d[0],1/eta_d[2],1/eta_d[4]]) # units?
-L = np.array([1.5e-3, 2e-3,3e-3]) # m
-m1,b1 = np.polyfit(L[:2],inv_eta_d_15[:2],deg=1) # for 1.5mm and 2.0mm
-m2,b2 = np.polyfit(L[1:],inv_eta_d_15[1:],deg=1) # for 2.0mm and 3.0mm
+inv_eta_d_15 = np.array([1/eta_d[0],1/eta_d[2]]) # units?
+# inv_eta_d_15 = np.array([1/eta_d[0],1/eta_d[2],1/eta_d[4]]) # units?
+L = np.array([2e-3,3e-3]) # m
+# L = np.array([1.5e-3, 2e-3,3e-3]) # m
+# m1,b1 = np.polyfit(L[:2],inv_eta_d_15[:2],deg=1) # for 1.5mm and 2.0mm
+# m2,b2 = np.polyfit(L[1:],inv_eta_d_15[1:],deg=1) # for 2.0mm and 3.0mm
+m2,b2 = np.polyfit(L,inv_eta_d_15,deg=1) # for 2.0mm and 3.0mm
 
-eta_i_15_1 = 1/b1
-alpha_i_15_1 = m1*np.log(1/.33)/b1
+# eta_i_15_1 = 1/b1
+# alpha_i_15_1 = m1*np.log(1/.33)/b1
 eta_i_15_2 = 1/b2
 alpha_i_15_2 = m2*np.log(1/.33)/b2
 
-print('\nFor T=15°C, 1.5mm & 2mm fit:')
-print('Injection Efficiency =',round(eta_i_15_1,4))
-print('Net Internal Optical Loss =',round(alpha_i_15_1,4))
+# print('\nFor T=15°C, 1.5mm & 2mm fit:')
+# print('Injection Efficiency =',round(eta_i_15_1,4))
+# print('Net Internal Optical Loss =',round(alpha_i_15_1,4))
 print('For T=15°C, 2mm & 3mm fit:')
 print('Injection Efficiency =',round(eta_i_15_2,4))
 print('Net Internal Optical Loss =',round(alpha_i_15_2,4))
 
 
 #   For T=30°C: make fit y=nx + c
-inv_eta_d_30 = np.array([1/eta_d[1], 1/eta_d[3], 1/eta_d[5]])
-n1,c1 = np.polyfit(L[:2],inv_eta_d_30[:2],deg=1)
-n2,c2 = np.polyfit(L[1:],inv_eta_d_30[1:],deg=1)
+inv_eta_d_30 = np.array([1/eta_d[1], 1/eta_d[3]])
+# inv_eta_d_30 = np.array([1/eta_d[1], 1/eta_d[3], 1/eta_d[5]])
+# n1,c1 = np.polyfit(L[:2],inv_eta_d_30[:2],deg=1)
+# n2,c2 = np.polyfit(L[1:],inv_eta_d_30[1:],deg=1)
+n2,c2 = np.polyfit(L,inv_eta_d_30,deg=1)
 
-eta_i_30_1 = 1/c1
-alpha_i_30_1 = n1*np.log(1/.33)/c1
+# eta_i_30_1 = 1/c1
+# alpha_i_30_1 = n1*np.log(1/.33)/c1
 eta_i_30_2 = 1/c2
 alpha_i_30_2 = n2*np.log(1/.33)/c2
 
-print('\nFor T=30°C, 1.5mm & 2mm fit:')
-print('Injection Efficiency =',round(eta_i_30_1,4))
-print('Net Internal Optical Loss =',round(alpha_i_30_1,4))
+# print('\nFor T=30°C, 1.5mm & 2mm fit:')
+# print('Injection Efficiency =',round(eta_i_30_1,4))
+# print('Net Internal Optical Loss =',round(alpha_i_30_1,4))
 print('For T=30°C, 1.5mm & 2mm fit:')
 print('Injection Efficiency =',round(eta_i_30_2,4))
 print('Net Internal Optical Loss =',round(alpha_i_30_2,4))
@@ -263,11 +271,11 @@ Ls = np.linspace(1.4e-3,3.1e-3,1000)
 plt.figure(figsize=(3.2, 3.2))
 plt.plot(L*1000,inv_eta_d_15,'ro')
 plt.plot(Ls*1000,Ls*m2 + b2,'r--',label='T=15°C, 1.5-2mm Fit')
-plt.plot(Ls*1000,Ls*m1 + b1,'r:',label='T=15°C, 2-3mm Fit')
+# plt.plot(Ls*1000,Ls*m1 + b1,'r:',label='T=15°C, 2-3mm Fit')
 
 plt.plot(L*1000,inv_eta_d_30,'bo')
 plt.plot(Ls*1000,Ls*n2 + c2,'b--',label='T=30°C, 1.5-2mm Fit')
-plt.plot(Ls*1000,Ls*n1 + c1,'b:',label='T=30°C, 2-3mm Fit')
+# plt.plot(Ls*1000,Ls*n1 + c1,'b:',label='T=30°C, 2-3mm Fit')
 
 # plt.plot(L*1000,inv_eta_d_30,'bo',label='T=30°C, $\\eta_i$='+str(round(eta_i_30,4))+', $\\langle \\alpha_i \\rangle$='+str(round(alpha_i_30/100,4))+'cm$^{-1}$')
 # plt.plot(Ls*1000,Ls*n + c,'b--')
@@ -282,40 +290,40 @@ plt.savefig(plot_dir + 'DiffQuantEff_2fits.pdf', bbox_inches='tight')
 
 
 # using temperatures and threshold currents, find the characteristic temperature (for a given cavity length)
-#   For L=2mm: fit y=gx + f
-# I_thresh_2 = I_thresh[:2]
-# T = np.array([15+273.15,30+273.15]) # temperatures in K
-# g,f = np.polyfit(T,np.log(I_thresh_2),deg=1)
+# For L=2mm: fit y=gx + f
+I_thresh_2 = I_thresh[:2]
+T = np.array([15+273.15,30+273.15]) # temperatures in K
+g,f = np.polyfit(T,np.log(I_thresh_2),deg=1)
 
-# T0_2 = 1/g # characteristic temp for L=2mm
-# I0_2 = np.exp(f)
+T0_2 = 1/g # characteristic temp for L=2mm
+I0_2 = np.exp(f)
 
-# print('\nFor L=2mm:')
-# print('Characteristic Temperature =',round(T0_2,2))
+print('\nFor L=2mm:')
+print('Characteristic Temperature =',round(T0_2,2))
 
-# #   For L=3mm: fit y=ux + v
-# I_thresh_3 = I_thresh[2:]
-# u,v = np.polyfit(T,np.log(I_thresh_3),deg=1)
+#   For L=3mm: fit y=ux + v
+I_thresh_3 = I_thresh[2:]
+u,v = np.polyfit(T,np.log(I_thresh_3),deg=1)
 
-# T0_3 = 1/u
-# I0_3 = np.exp(v)
+T0_3 = 1/u
+I0_3 = np.exp(v)
 
-# print('\nFor L=3mm:')
-# print('Characteristic Temperature =',round(T0_3,2))
+print('\nFor L=3mm:')
+print('Characteristic Temperature =',round(T0_3,2))
 
-# Ts = np.linspace(np.log(263.15),np.log(328.15),1000)
+Ts = np.linspace(np.log(263.15),np.log(328.15),1000)
 
-# plt.figure(figsize=(3.2, 3.2    ))
-# plt.plot(T,I_thresh_2,'ko',label='L=2 mm, $T_0$='+str(round(T0_2,2))+' K')
-# plt.plot(np.exp(Ts),I0_2*np.exp(np.exp(Ts)/T0_2),'k--')
+plt.figure(figsize=(3.2, 3.2))
+plt.plot(T,I_thresh_2,'ko',label='L=2 mm, $T_0$='+str(round(T0_2,2))+' K')
+plt.plot(np.exp(Ts),I0_2*np.exp(np.exp(Ts)/T0_2),'k--')
 
-# plt.plot(T,I_thresh_3,'go',label='L=3 mm, $T_0$='+str(round(T0_3,2))+' K')
-# plt.plot(np.exp(Ts),I0_3*np.exp(np.exp(Ts)/T0_3),'g--')
-# plt.xlabel('Temperature (K)')
-# plt.ylabel('Threshold Current (A)')
-# plt.legend()
-# plt.savefig(plot_dir + 'CharTemp.png', bbox_inches='tight')
-# plt.savefig(plot_dir + 'CharTemp.pdf', bbox_inches='tight')
+plt.plot(T,I_thresh_3,'go',label='L=3 mm, $T_0$='+str(round(T0_3,2))+' K')
+plt.plot(np.exp(Ts),I0_3*np.exp(np.exp(Ts)/T0_3),'g--')
+plt.xlabel('Temperature (K)')
+plt.ylabel('Threshold Current (A)')
+plt.legend()
+plt.savefig(plot_dir + 'CharTemp.png', bbox_inches='tight')
+plt.savefig(plot_dir + 'CharTemp.pdf', bbox_inches='tight')
 
 plt.show()
 
