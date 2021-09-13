@@ -1,2 +1,4 @@
 # LaserDiode
-Interfacing Computers with Instruments to Charecterize Laser Diodes
+Interfacing Instruments to Charecterize Laser Diodes.
+Code to automate an SMU and DMM with pyVISA and SCPI commands to plot IVL characteristic curves of a laser diode. 
+
